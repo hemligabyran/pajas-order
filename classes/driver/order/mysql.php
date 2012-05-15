@@ -130,9 +130,15 @@ class Driver_Order_Mysql extends Driver_Order
 		return $this->check_db_structure();
 	}
 
-	public function get()
+	public function get($order_id)
 	{
-		return 'nisse';
+// This needs proper code. Populate the array():s
+		return array('id' => $order_id, 'fields', => array(), 'rows' => array());
+	}
+
+	public function order_id_exists($order_id)
+	{
+		return (bool) $this->pdo->query('SELECT id FROM order_orders WHERE id = '.$this->pdo->quote($order_id))->fetchColumn();
 	}
 
 }

@@ -31,13 +31,11 @@ abstract class Driver_Order extends Model
 	abstract public function get();
 
 	/**
-	 * Get content
+	 * Checks if an order id exists
 	 *
-	 * @param int $content_id
-	 * @return str
-	 * /
-	abstract public function get_content($content_id);
-	/**/
-
+	 * @param int $order_id
+	 * @return boolean
+	 */
+	abstract public function order_id_exists($order_id);
 
 }
