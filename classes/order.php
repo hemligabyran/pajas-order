@@ -52,14 +52,13 @@ class Order
 	 * Add row to this order
 	 *
 	 * @param array - only one dimension with data, like array('Product ID' => 'kskd', 'Price' => 239)
-	 * @return boolean
+	 * @return int - new row id
 	 */
 	public function add_row($row_data)
 	{
 		if ( ! isset($row_data['price']))  = $row_data['price']  = 0;
 
-// I18n object needed for this one in the future!
-		if ( ! isset($row_data['VAT']))    = $row_data['VAT']    = 1.25;
+		if ( ! isset($row_data['VAT']))    = $row_data['VAT']    = Kohana::$config->load('order.default_VAT');
 
 		// To not confuse new rows with already saved ones, we give them negative keys
 		$row_nr = -1;
@@ -83,9 +82,18 @@ class Order
 		return self::$driver;
 	}
 
+	/**
+	 * Duplicate a row
+	 *
+	 * @param int $row_id - wich row to duplicate
+	 * @return int - new row id
+	 */
 	public function duplicate_row($row_id)
 	{
-// Gör en exakt kopia på en rad som redan finns. Finns de inte returnera FALSE
+		if ( ! isset($this->order_data['rows'][$row_id]))
+			return FALSE;
+
+		return $this->add_row($this->order_data['rows'][$row_id]);
 	}
 
 	/**
@@ -157,11 +165,34 @@ class Order
 // Kod behövs, men inte nu akut
 	}
 
+	/**
+	 * Get the total price for this order
+	 *
+	 * @param bool $include_VAT
+	 * @return float
+	 */
 	public function get_total_price($include_VAT = TRUE)
 	{
-// Sum all rows. price * VAT
+		$sum = 0;
+		foreach ($this->order_data['rows'] as $row)
+		{
+			if (isset($row['price']))
+			{
+				if (isset($row['VAT']) && $include_VAT)
+					$sum += ($row['price'] * $row['VAT']);
+				else
+					$sum += $row['price'];
+			}
+		}
+
+		return $sum;
 	}
 
+	/**
+	 * Get toal VAT cost for this order
+	 *
+	 * @return float
+	 */
 	public function get_total_VAT()
 	{
 		return $this->get_total_price() - $this->get_total_price(FALSE);
@@ -179,6 +210,12 @@ class Order
 		return self::driver()->get_row_field_id($name);
 	}
 
+	/**
+	 * Get row field name
+	 *
+	 * @param int $id
+	 * @return str
+	 */
 	public static function get_row_field_name($id)
 	{
 		return self::driver()->get_row_field_name($id);
@@ -207,6 +244,12 @@ class Order
 		return $this->order_data = self::driver()->get($order_id);
 	}
 
+	/**
+	 * Remove order field
+	 *
+	 * @param str $name
+	 * @return boolean
+	 */
 	public function rm_field($name)
 	{
 		if (isset($this->order_data['fields'][$name]))
@@ -215,6 +258,12 @@ class Order
 		return TRUE;
 	}
 
+	/**
+	 * Remove row
+	 *
+	 * @param int $row_id
+	 * @return boolean
+	 */
 	public function rm_row($row_id)
 	{
 		if (isset($this->order_data['rows'][$row_id]))
@@ -223,10 +272,36 @@ class Order
 		return TRUE;
 	}
 
+	/**
+	 * Remove a row by what fields it contains
+	 *
+	 * @param arr $fields - array key as field name, array value as
+	 *                      field value. NULL as value will match all
+	 *                      with this field
+	 * @return int - number of removed rows
+	 */
 	public function rm_row_by_row_fields($fields)
 	{
-// if all $fields ar matched in a row, remove it.
-// For example if $fields = array('Product Name' => 'Gul boll') Then all rows that contains this data should be removed
+		$removed_rows = 0;
+		foreach ($this->order_data['rows'] as $row_id => $row)
+		{
+			foreach ($fields as $field_name => $field_value)
+			{
+				if
+				(
+					! isset($row[$field_name]) ||
+					(
+						$row[$field_name] != $field_value &&
+						$field_value !== NULL
+					)
+				) continue 2;
+
+				$removed_rows++;
+				unset($this->order_data['rows'][$row_id]);
+			}
+		}
+
+		return $removed_rows;
 	}
 
 	public function rm_row_field($row_id, $field_name)
@@ -238,14 +313,21 @@ class Order
 	}
 
 	/**
+	 * Save order to database
 	 *
-	 *
-	 *
+	 * @param bool $maintain_session - If FALSE, erase the session data
+	 * @return int - order id
 	 */
 	public function save($maintain_session = FALSE)
 	{
-// Save all order data to database. Remember to add fields or row fields if they are missing
-// If $maintain_session is FALSE, erase all session data
+		$order_id = self::driver()->save($this->order_data);
+
+		if ($maintain_session === FALSE)
+			$this->order_data = array('fields'=>array(),'rows'=>array());
+		else
+			$this->order_data = self::driver()->get($order_id);
+
+		return $order_id;
 	}
 
 	/**
