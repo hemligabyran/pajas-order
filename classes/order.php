@@ -56,9 +56,9 @@ class Order
 	 */
 	public function add_row($row_data)
 	{
-		if ( ! isset($row_data['price']))  = $row_data['price']  = 0;
+		if ( ! isset($row_data['price']))  $row_data['price']  = 0;
 
-		if ( ! isset($row_data['VAT']))    = $row_data['VAT']    = Kohana::$config->load('order.default_VAT');
+		if ( ! isset($row_data['VAT']))    $row_data['VAT']    = Kohana::$config->load('order.default_VAT');
 
 		// To not confuse new rows with already saved ones, we give them negative keys
 		$row_nr = -1;
@@ -320,6 +320,13 @@ class Order
 	 */
 	public function save($maintain_session = FALSE)
 	{
+		// Set default fields
+		foreach (Kohana::$config->load('order.default_fields') as $name => $value)
+		{
+			if ( ! isset($this->order_data['fields'][$name]))
+				$this->order_data['fields'][$name] = $value;
+		}
+
 		$order_id = self::driver()->save($this->order_data);
 
 		if ($maintain_session === FALSE)
@@ -337,7 +344,7 @@ class Order
 	 */
 	public static function set_driver()
 	{
-		$driver_name = 'Driver_Order_'.ucfirst(Kohana::$config->load('content.driver'));
+		$driver_name = 'Driver_Order_'.ucfirst(Kohana::$config->load('pdo.default.driver'));
 		return (self::$driver = new $driver_name);
 	}
 

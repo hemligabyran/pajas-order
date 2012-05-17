@@ -32,8 +32,8 @@ class Driver_Order_Mysql extends Driver_Order
 		if ($result) $result = $result->fetchAll(PDO::FETCH_ASSOC);
 		if (
 		     $result != array(
-		                   array('Field' => 'orderid',    'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
-		                   array('Field' => 'fieldid',    'Type' => 'int(10) unsigned',    'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
+		                   array('Field' => 'order_id',   'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
+		                   array('Field' => 'field_id',   'Type' => 'int(10) unsigned',    'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
 		                   array('Field' => 'value',      'Type' => 'text',                'Null' => 'YES', 'Key' => NULL,  'Default' => NULL, 'Extra' => NULL            ),
 		                 )
 		) $db_check_pass = FALSE;
@@ -52,7 +52,7 @@ class Driver_Order_Mysql extends Driver_Order
 		if (
 		     $result != array(
 		                   array('Field' => 'id',         'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'PRI', 'Default' => NULL, 'Extra' => NULL            ),
-		                   array('Field' => 'orderid',    'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'UNI', 'Default' => NULL, 'Extra' => NULL            ),
+		                   array('Field' => 'order_id',   'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'UNI', 'Default' => NULL, 'Extra' => NULL            ),
 		                 )
 		) $db_check_pass = FALSE;
 
@@ -60,8 +60,8 @@ class Driver_Order_Mysql extends Driver_Order
 		if ($result) $result = $result->fetchAll(PDO::FETCH_ASSOC);
 		if (
 		     $result != array(
-		                   array('Field' => 'rowid',      'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
-		                   array('Field' => 'fieldid',    'Type' => 'int(10) unsigned',    'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
+		                   array('Field' => 'row_id',     'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
+		                   array('Field' => 'field_id',   'Type' => 'int(10) unsigned',    'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
 		                   array('Field' => 'value',      'Type' => 'text',                'Null' => 'YES', 'Key' => NULL,  'Default' => NULL, 'Extra' => NULL            ),
 		                 )
 		) $db_check_pass = FALSE;
@@ -74,23 +74,23 @@ class Driver_Order_Mysql extends Driver_Order
 	}
 
 	protected function create_db_structure() {
-		$this->pdo->query('
+		$this->pdo->exec('
 			CREATE TABLE IF NOT EXISTS `order_fields` (
 				`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 				`name` varchar(255) CHARACTER SET latin1 NOT NULL,
 				PRIMARY KEY (`id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 			CREATE TABLE IF NOT EXISTS `order_orders` (
 				`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 				PRIMARY KEY (`id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 			CREATE TABLE IF NOT EXISTS `order_orders_fields` (
-				`orderid` bigint(20) unsigned NOT NULL,
-				`fieldid` int(10) unsigned NOT NULL,
+				`order_id` bigint(20) unsigned NOT NULL,
+				`field_id` int(10) unsigned NOT NULL,
 				`value` text CHARACTER SET latin1,
-				KEY `orderid` (`orderid`,`fieldid`),
-				KEY `orderid_2` (`orderid`),
-				KEY `fieldid` (`fieldid`)
+				KEY `order_id` (`order_id`,`field_id`),
+				KEY `order_id_2` (`order_id`),
+				KEY `field_id` (`field_id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 			CREATE TABLE IF NOT EXISTS `order_rowfields` (
 				`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -98,33 +98,28 @@ class Driver_Order_Mysql extends Driver_Order
 				PRIMARY KEY (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 			CREATE TABLE IF NOT EXISTS `order_rows` (
-				`id` bigint(20) unsigned NOT NULL,
-				`orderid` bigint(20) unsigned NOT NULL,
+				`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				`order_id` bigint(20) unsigned NOT NULL,
 				PRIMARY KEY (`id`),
-				UNIQUE KEY `orderid` (`orderid`),
-				UNIQUE KEY `id` (`id`,`orderid`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+				UNIQUE KEY `id` (`id`,`order_id`),
+				KEY `order_id` (`order_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 			CREATE TABLE IF NOT EXISTS `order_rows_fields` (
-				`rowid` bigint(20) unsigned NOT NULL,
-				`fieldid` int(10) unsigned NOT NULL,
+				`row_id` bigint(20) unsigned NOT NULL,
+				`field_id` int(10) unsigned NOT NULL,
 				`value` text CHARACTER SET latin1,
-				KEY `rowid` (`rowid`,`fieldid`),
-				KEY `rowid_2` (`rowid`),
-				KEY `fieldid` (`fieldid`)
+				KEY `row_id` (`row_id`,`field_id`),
+				KEY `row_id_2` (`row_id`),
+				KEY `field_id` (`field_id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-			ALTER TABLE `order_fields`
-				ADD CONSTRAINT `order_fields_ibfk_1` FOREIGN KEY (`id`) REFERENCES `order_orders_fields` (`fieldid`);
 			ALTER TABLE `order_orders_fields`
-				ADD CONSTRAINT `order_orders_fields_ibfk_2` FOREIGN KEY (`fieldid`) REFERENCES `order_fields` (`id`),
-				ADD CONSTRAINT `order_orders_fields_ibfk_1` FOREIGN KEY (`orderid`) REFERENCES `order_orders` (`id`);
-			ALTER TABLE `order_rowfields`
-				ADD CONSTRAINT `order_rowfields_ibfk_1` FOREIGN KEY (`id`) REFERENCES `order_rows_fields` (`fieldid`);
+				ADD CONSTRAINT `order_orders_fields_ibfk_2` FOREIGN KEY (`field_id`) REFERENCES `order_fields` (`id`),
+				ADD CONSTRAINT `order_orders_fields_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `order_orders` (`id`);
 			ALTER TABLE `order_rows`
-				ADD CONSTRAINT `order_rows_ibfk_2` FOREIGN KEY (`id`) REFERENCES `order_rows_fields` (`rowid`),
-				ADD CONSTRAINT `order_rows_ibfk_1` FOREIGN KEY (`orderid`) REFERENCES `order_orders` (`id`);
-			ALTER TABLE `order_rows_fields`
-				ADD CONSTRAINT `order_rows_fields_ibfk_2` FOREIGN KEY (`fieldid`) REFERENCES `order_rowfields` (`id`),
-				ADD CONSTRAINT `order_rows_fields_ibfk_1` FOREIGN KEY (`rowid`) REFERENCES `order_rows` (`id`);
+				ADD CONSTRAINT `order_rows_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `order_orders` (`id`);
+  			ALTER TABLE `order_rows_fields`
+				ADD CONSTRAINT `order_rows_fields_ibfk_2` FOREIGN KEY (`field_id`) REFERENCES `order_rowfields` (`id`),
+				ADD CONSTRAINT `order_rows_fields_ibfk_1` FOREIGN KEY (`row_id`) REFERENCES `order_rows` (`id`);
 		');
 
 		return $this->check_db_structure();
@@ -133,12 +128,111 @@ class Driver_Order_Mysql extends Driver_Order
 	public function get($order_id)
 	{
 // This needs proper code. Populate the array():s
-		return array('id' => $order_id, 'fields', => array(), 'rows' => array());
+		return array('id' => $order_id, 'fields' => array(), 'rows' => array());
 	}
+
+	public function get_field_id($name)
+	{
+		$field_id = $this->pdo->query('SELECT id FROM order_fields WHERE name = '.$this->pdo->quote($name))->fetchColumn();
+		if ( ! $field_id)
+		{
+			$this->pdo->exec('INSERT INTO order_fields (name) VALUES('.$this->pdo->quote($name).');');
+			$field_id = $this->pdo->lastInsertId();
+		}
+
+		return $field_id;
+	}
+
+	public function get_field_name($id)
+	{
+
+	}
+
+	public function get_row_field_id($name)
+	{
+		$field_id = $this->pdo->query('SELECT id FROM order_rowfields WHERE name = '.$this->pdo->quote($name))->fetchColumn();
+		if ( ! $field_id)
+		{
+			$this->pdo->exec('INSERT INTO order_rowfields (name) VALUES('.$this->pdo->quote($name).');');
+			$field_id = $this->pdo->lastInsertId();
+		}
+
+		return $field_id;
+	}
+
+	public function get_row_field_name($id)
+	{
+
+	}
+
 
 	public function order_id_exists($order_id)
 	{
 		return (bool) $this->pdo->query('SELECT id FROM order_orders WHERE id = '.$this->pdo->quote($order_id))->fetchColumn();
+	}
+
+	public function save($order_data)
+	{
+		if ( ! isset($order_data['id']))
+		{
+			// Order did not exist in database, create it
+			$this->pdo->exec('INSERT INTO order_orders () VALUES();');
+			$order_data['id'] = $this->pdo->lastInsertId();
+		}
+		elseif ( ! $this->order_id_exists($order_data['id']))
+			return FALSE;
+
+		// We will use the quoted order id a lot of times, simplify by store it in a variable
+		$quoted_id = $this->pdo->quote($order_data['id']);
+
+		// Give rows real row ids instead of temporary, negative ones
+		foreach ($order_data['rows'] as $row_id => $row_data)
+		{
+			if ($row_id < 0)
+			{
+				// If $row_id is below 0, it is not previously stored in the database
+				$this->pdo->exec('INSERT INTO order_rows (order_id) VALUES('.$quoted_id.');');
+				unset($order_data['rows'][$row_id]);
+				$row_id = $this->pdo->lastInsertId();
+				$order_data['rows'][$row_id] = $row_data;
+			}
+		}
+
+		// Build the big SQL to update the order tables
+		$sql = '
+			LOCK TABLES order_orders_fields WRITE, order_rows WRITE, order_rows_fields WRITE;
+			DELETE FROM order_orders_fields WHERE order_id = '.$quoted_id.';
+			DELETE FROM order_rows_fields WHERE row_id IN (SELECT id FROM order_rows WHERE order_id = '.$quoted_id.');
+			DELETE FROM order_rows WHERE order_id = '.$quoted_id;
+
+		if (count($order_data['rows']))
+			$sql .= ' AND row_id NOT IN ('.implode(',', array_keys($order_data['rows'])).')';
+		$sql .= ';';
+
+		if (count($order_data['fields']))
+		{
+			$sql .= 'INSERT INTO order_orders_fields (order_id,field_id,`value`) VALUES';
+			foreach ($order_data['fields'] as $name => $value)
+				$sql .= '('.$quoted_id.','.$this->get_field_id($name).','.$this->pdo->quote($value).'),';
+			$sql = rtrim($sql, ',').';';
+		}
+
+		if (count($order_data['rows']))
+		{
+			$sql .= 'INSERT INTO order_rows_fields (row_id,field_id,`value`) VALUES';
+			foreach ($order_data['rows'] as $row_id => $row_data)
+			{
+				foreach ($row_data as $name => $value)
+					$sql .= '('.$this->pdo->quote($row_id).','.$this->get_row_field_id($name).','.$this->pdo->quote($value).'),';
+			}
+			$sql = rtrim($sql, ',').';';
+		}
+
+		$sql .= 'UNLOCK TABLES;';
+
+		$this->pdo->exec($sql);
+
+		return $order_data['id'];
 	}
 
 }

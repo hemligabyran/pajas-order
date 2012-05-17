@@ -28,7 +28,47 @@ abstract class Driver_Order extends Model
 	 */
 	abstract protected function create_db_structure();
 
-	abstract public function get();
+	/**
+	 * Get all order data for one specific order
+	 *
+	 * @param int $order_id
+	 * @return array
+	 */
+	abstract public function get($order_id);
+
+	/**
+	 * Get field id
+	 *  - Will create if it did not exist before
+	 *
+	 * @param str $name
+	 * @return int
+	 */
+	abstract public function get_field_id($name);
+
+	/**
+	 * Get field name
+	 *
+	 * @param int $id
+	 * @return str
+	 */
+	abstract public function get_field_name($id);
+
+	/**
+	 * Get row field id
+	 *  - Will create if it did not exist before
+	 *
+	 * @param str $name
+	 * @return int
+	 */
+	abstract public function get_row_field_id($name);
+
+	/**
+	 * Get row field name
+	 *
+	 * @param int $id
+	 * @return str
+	 */
+	abstract public function get_row_field_name($id);
 
 	/**
 	 * Checks if an order id exists
@@ -37,5 +77,30 @@ abstract class Driver_Order extends Model
 	 * @return boolean
 	 */
 	abstract public function order_id_exists($order_id);
+
+	/**
+	 * Save order to database
+	 *
+	 * @param arr $order_data - Must be of format:
+	 * array(
+	 *       'id' => <int> (optional, new id will be created if left out),
+	 *       'fields' => array(
+	 *                       'firstname' => 'John',
+	 *                       'lastname'  => 'Smith',
+	 *                       etc.
+	 *       )
+	 *       'rows' => array(
+	 *                       -1 => array( // Will create a new row with a new id
+	 *                                  'name' => 'Baseball',
+	 *                                  'price' => '5000'
+	 *                             )
+	 *                       392 => array( // Will update row id 392
+	 *                                  'name' => 'Baseball',
+	 *                                  'price' => '5000'
+	 *                             )
+	 *       )
+	 * )
+	 */
+	abstract public function save($order_data);
 
 }
