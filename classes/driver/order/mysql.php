@@ -127,8 +127,27 @@ class Driver_Order_Mysql extends Driver_Order
 
 	public function get($order_id)
 	{
-// This needs proper code. Populate the array():s
-		return array('id' => $order_id, 'fields' => array(), 'rows' => array());
+		if ( ! $this->order_id_exists($order_id))
+			return FALSE;
+
+		$order_data = array('id' => $order_id, 'fields' => array(), 'rows' => array());
+
+		$sql = 'SELECT (SELECT name FROM order_fields WHERE id = field_id) AS field, `value` FROM order_orders_fields WHERE order_id = '.$this->pdo->quote($order_id);
+		foreach ($this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $row)
+			$order_data['fields'][$row['field']] = $row['value'];
+
+		$sql = '
+			SELECT
+				row_id,
+				(SELECT name FROM order_rowfields WHERE id = field_id) AS field,
+				`value`
+			FROM `order_rows_fields`
+			WHERE
+				row_id IN (SELECT id FROM order_rows WHERE order_id = '.$this->pdo->quote($order_id).')';
+		foreach ($this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $row)
+			$order_data['rows'][$row['row_id']][$row['field']] = $row['value'];
+
+		return $order_data;
 	}
 
 	public function get_field_id($name)
@@ -145,7 +164,7 @@ class Driver_Order_Mysql extends Driver_Order
 
 	public function get_field_name($id)
 	{
-
+		return $this->pdo->query('SELECT name FROM order_fields WHERE id = '.$this->pdo->quote($id))->fetchColumn();
 	}
 
 	public function get_row_field_id($name)
@@ -162,9 +181,8 @@ class Driver_Order_Mysql extends Driver_Order
 
 	public function get_row_field_name($id)
 	{
-
+		return $this->pdo->query('SELECT name FROM order_rowfields WHERE id = '.$this->pdo->quote($id))->fetchColumn();
 	}
-
 
 	public function order_id_exists($order_id)
 	{
@@ -206,7 +224,7 @@ class Driver_Order_Mysql extends Driver_Order
 			DELETE FROM order_rows WHERE order_id = '.$quoted_id;
 
 		if (count($order_data['rows']))
-			$sql .= ' AND row_id NOT IN ('.implode(',', array_keys($order_data['rows'])).')';
+			$sql .= ' AND id NOT IN ('.implode(',', array_keys($order_data['rows'])).')';
 		$sql .= ';';
 
 		if (count($order_data['fields']))
