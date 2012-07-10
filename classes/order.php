@@ -232,6 +232,45 @@ class Order
 	}
 
 	/**
+	 * Get order rows by content
+	 *
+	 * @param arr $content - key as field, value as value. TRUE as value matches all values
+	 * @param bol $match_all - if set to TRUE, all fields in $content must be met
+	 * @return arr - The matched row(s)
+	 */
+	public function get_rows_by_content($content, $match_all = TRUE)
+	{
+		$matched = array();
+
+		foreach ($this->get_rows() as $row_id => $row_data)
+		{
+			if ($match_all)
+			{
+				foreach ($content as $match_field => $match_content)
+				{
+					if ( ! isset($row_data[$match_field]) || ($row_data[$match_field] != $match_content && $match_content !== TRUE))
+						continue 2; // Is not set at all, skip this row
+				}
+				$matched[$row_id] = $row_data; // Not continued, means we got a match
+			}
+			else
+			{
+				foreach ($content as $match_field => $match_content)
+				{
+					if (isset($row_data[$match_field]) && ($match_content === TRUE || $match_content == $row_data[$match_field]))
+					{
+						// Match! Add and continue to next row
+						$matched[$row_id] = $row_data;
+						continue 2;
+					}
+				}
+			}
+		}
+
+		return $matched;
+	}
+
+	/**
 	 * Reload order from database - ignore changes made in session
 	 *
 	 * @return boolean
