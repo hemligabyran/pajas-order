@@ -199,6 +199,19 @@ class Order
 	}
 
 	/**
+	 * Return specific row
+	 *
+	 * @param int $row_id
+	 * @return arr - row data, or false
+	 */
+	public function get_row($row_id)
+	{
+		if (isset($this->order_data['rows'][$row_id]))
+			return $this->order_data['rows'][$row_id];
+		return FALSE;
+	}
+
+	/**
 	 * Get row field id
 	 *  - The row field will be created if it does not exist
 	 *
