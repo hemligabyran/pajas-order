@@ -67,7 +67,9 @@ class Order
 
 		ksort($row_data);
 
-		return $this->order_data['rows'][$row_nr] = $row_data;
+		$this->order_data['rows'][$row_nr] = $row_data;
+
+		return $row_nr;
 	}
 
 	/**
