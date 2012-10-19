@@ -69,6 +69,17 @@ class Order
 
 		$this->order_data['rows'][$row_nr] = $row_data;
 
+		// Recalculate total sums
+		$this->order_data['total']     = 0;
+		$this->order_data['total_VAT'] = 0;
+
+		foreach ($this->order_data['rows'] as $row)
+		{
+			$VAT                            = $row['price'] * ($row['VAT'] - 1);
+			$this->order_data['total_VAT'] += $VAT;
+			$this->order_data['total']     += ($row['price'] + $VAT);
+		}
+
 		return $row_nr;
 	}
 

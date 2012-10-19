@@ -130,7 +130,13 @@ class Driver_Order_Mysql extends Driver_Order
 		if ( ! $this->order_id_exists($order_id))
 			return FALSE;
 
-		$order_data = array('id' => $order_id, 'fields' => array(), 'rows' => array());
+		$order_data = array(
+			'id'          => $order_id,
+			'fields'      => array(),
+			'rows'        => array(),
+			'total'       => 0,
+			'total_VAT'   => 0,
+		);
 
 		$sql = 'SELECT (SELECT name FROM order_fields WHERE id = field_id) AS field, `value` FROM order_orders_fields WHERE order_id = '.$this->pdo->quote($order_id);
 		foreach ($this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $row)
@@ -139,13 +145,15 @@ class Driver_Order_Mysql extends Driver_Order
 		$sql = '
 			SELECT
 				row_id,
-				(SELECT name FROM order_rowfields WHERE id = field_id) AS field,
+				rf.name AS field,
 				`value`
-			FROM `order_rows_fields`
+			FROM
+				order_rows_fields rsf
+				JOIN order_rowfields rf ON rf.id = rsf.field_id
 			WHERE
 				row_id IN (SELECT id FROM order_rows WHERE order_id = '.$this->pdo->quote($order_id).')';
 		foreach ($this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $row)
-			$order_data['rows'][$row['row_id']][$row['field']] = $row['value'];
+			$order_data['rows'][$row['row_id']][$row['field']]  = $row['value'];
 
 		return $order_data;
 	}
