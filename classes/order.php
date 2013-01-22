@@ -17,17 +17,18 @@ class Order
 	/**
 	 * Constructor
 	 *
-	 * @param int $order_id - if provided, loads an order from database, otherwise creates a new one or loads from session
-	 * @param str $session - Name of the session to use, if FALSE use no session at all
+	 * @param int $order_id    - if provided, loads an order from database, otherwise creates a new one or loads from session
+	 * @param str $session     - Name of the session to use, if FALSE use no session at all
+	 * @param bol $start_clean - If no order_id is supplied, clean out possible session data before starting
 	 */
-	public function __construct($order_id = FALSE, $session = 'default')
+	public function __construct($order_id = FALSE, $session = 'default', $start_clean = FALSE)
 	{
 		Session::instance(); // Make sure sessions is turned on
 
 		if ($session)
 		{
 			// A session should be used
-			if ( ! isset($_SESSION['order'][$session])) // If no session data exists, create a clean one
+			if ( ! isset($_SESSION['order'][$session]) || $start_clean)
 				$_SESSION['order'][$session] = array('fields' => array(), 'rows' => array());
 
 			// Load it into $this->order_data by reference so we update both at once
