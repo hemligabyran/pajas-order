@@ -1,2 +1,2 @@
 <?php defined('SYSPATH') OR die('No direct access allowed.');
-class Order extends Model_Order {}
+class Orders extends Model_Orders {}

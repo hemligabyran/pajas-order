@@ -54,6 +54,22 @@ abstract class Driver_Order extends Model
 	abstract public function get_field_name($id);
 
 	/**
+	 * Get orders
+	 *
+	 * @param arr $match_all_fields     - key as field name, array of values as field values
+	 * @param arr $match_any_field      - key as field name, array of values as field values
+	 * @param arr $match_all_row_fields - key as row field name, array of values as row field values
+	 * @param arr $match_any-row_field  - key as row field name, array of values as row field values
+	 * @param arr $return_fields        - array of field names
+	 * @param arr $return_row_fields    - array of row field names
+	 * @param int $limit
+	 * @param int $offset
+	 * @param arr $order_by             - key as field, value as ASC or DESC (array of arrays for order by multiple columns)
+	 * @return array
+	 */
+	abstract public function get_orders($match_all_fields, $match_any_field, $match_all_row_fields, $match_any_row_field, $return_fields, $return_row_fields, $limit, $offset, $order_by);
+
+	/**
 	 * Get row field id
 	 *  - Will create if it did not exist before
 	 *

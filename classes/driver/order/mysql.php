@@ -175,6 +175,77 @@ class Driver_Order_Mysql extends Driver_Order
 		return $this->pdo->query('SELECT name FROM order_fields WHERE id = '.$this->pdo->quote($id))->fetchColumn();
 	}
 
+	public function get_orders($match_all_fields, $match_any_field, $match_all_row_fields, $match_any_row_field, $return_fields, $return_row_fields, $limit, $offset, $order_by)
+	{
+		$sql = '
+			SELECT
+				o.id';
+
+		foreach ($return_fields as $return_field)
+			$sql .= ',
+				(SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$this->get_field_id($return_field).') AS '.Mysql::quote_identifier($return_field);
+
+		$sql .= '
+			FROM
+				order_orders o';
+
+		if ($match_all_fields)
+		{
+			foreach ($match_all_fields as $field => $values)
+			{
+				if ( ! is_array($values)) $values = array($values);
+				foreach ($values as $nr => $value)
+				{
+					$sql .= '
+						INNER JOIN order_orders_fields '.Mysql::quote_identifier($field.$nr).'
+							ON '.Mysql::quote_identifier($field.$nr).'.order_id = o.id
+							AND '.Mysql::quote_identifier($field.$nr).'.field_id = '.$this->get_field_id($field);
+				}
+
+				if ( ! count($values))
+				{
+					// Empty array should match the field whatever the content
+					$sql .= '
+						INNER JOIN order_orders_fields '.$field.'
+							ON '.Mysql::quote_identifier($field).'.order_id = o.id
+							AND '.Mysql::quote_identifier($field).'.field_id = '.$this->get_field_id($field);
+				}
+			}
+		}
+
+		$sql .= '
+			WHERE 1';
+
+		if ($match_all_fields)
+		{
+			foreach ($match_all_fields as $field => $values)
+			{
+				if ( ! is_array($values)) $values = array($values);
+				foreach ($values as $nr => $value)
+					$sql .= ' AND '.Mysql::quote_identifier($field.$nr).'.value = '.$this->pdo->quote($value);
+			}
+		}
+
+		if ($order_by)
+		{
+			$sql .= ' ORDER BY';
+			foreach ($order_by as $key => $value)
+			{
+				if ( ! is_array($value)) $value = array($key => $value);
+
+				foreach ($value as $field => $order)
+				{
+					if (strtoupper($order) == 'ASC') $order = 'ASC';
+					else                             $order = 'DESC';
+
+					$sql .= ' '.Mysql::quote_identifier($field).' '.$order;
+				}
+			}
+		}
+
+		return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+	}
+
 	public function get_row_field_id($name)
 	{
 		$field_id = $this->pdo->query('SELECT id FROM order_rowfields WHERE name = '.$this->pdo->quote($name))->fetchColumn();
