@@ -32,7 +32,9 @@ class Model_Order
 				$_SESSION['order'][$session] = array('fields' => array(), 'rows' => array());
 
 			// Load it into $this->order_data by reference so we update both at once
-			$this->order_data = &$_SESSION['order'][$session];
+			$this->order_data              = &$_SESSION['order'][$session];
+			$this->order_data['total']     = $this->get_total_price();
+			$this->order_data['total_VAT'] = $this->get_total_VAT();
 		}
 		else // No session shuld be used, open up a clean order_data variable
 			$this->order_data = array('fields' => array(), 'rows' => array());
