@@ -10,9 +10,7 @@ class Model_Order
 	 */
 	static private $driver;
 
-	private $order_data;
-
-	private $session;
+	protected $order_data;
 
 	/**
 	 * Constructor
@@ -44,6 +42,8 @@ class Model_Order
 			{
 				// The supplied order id does not match the one saved in session/local, reaload session/local data
 				$this->order_data = self::driver()->get($order_id);
+
+				$this->recalculate_sums();
 			}
 		}
 
@@ -68,17 +68,7 @@ class Model_Order
 		ksort($row_data);
 
 		$this->order_data['rows'][$row_nr] = $row_data;
-
-		// Recalculate total sums
-		$this->order_data['total']     = 0;
-		$this->order_data['total_VAT'] = 0;
-
-		foreach ($this->order_data['rows'] as $row)
-		{
-			$VAT                            = $row['price'] * ($row['VAT'] - 1);
-			$this->order_data['total_VAT'] += $VAT;
-			$this->order_data['total']     += ($row['price'] + $VAT);
-		}
+		$this->recalculate_sums();
 
 		return $row_nr;
 	}
@@ -294,6 +284,22 @@ class Model_Order
 		}
 
 		return $matched;
+	}
+
+	private function recalculate_sums()
+	{
+		// Recalculate total sums
+		$this->order_data['total']     = 0;
+		$this->order_data['total_VAT'] = 0;
+
+		foreach ($this->order_data['rows'] as $row)
+		{
+			$VAT                            = $row['price'] * ($row['VAT'] - 1);
+			$this->order_data['total_VAT'] += $VAT;
+			$this->order_data['total']     += ($row['price'] + $VAT);
+		}
+
+		return TRUE;
 	}
 
 	/**
