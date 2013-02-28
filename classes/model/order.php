@@ -30,7 +30,9 @@ class Model_Order
 				$_SESSION['order'][$session] = array('fields' => array(), 'rows' => array());
 
 			// Load it into $this->order_data by reference so we update both at once
-			$this->order_data = &$_SESSION['order'][$session];
+			$this->order_data              = &$_SESSION['order'][$session];
+			$this->order_data['total']     = $this->get_total_price();
+			$this->order_data['total_VAT'] = $this->get_total_VAT();
 		}
 		else // No session shuld be used, open up a clean order_data variable
 			$this->order_data = array('fields' => array(), 'rows' => array());
@@ -41,9 +43,9 @@ class Model_Order
 			if ((isset($this->order_data['id']) && $order_id != $this->order_data['id']) || ! isset($this->order_data['id']))
 			{
 				// The supplied order id does not match the one saved in session/local, reaload session/local data
-				$this->order_data = self::driver()->get($order_id);
-
-				$this->recalculate_sums();
+				$this->order_data              = self::driver()->get($order_id);
+				$this->order_data['total']     = $this->get_total_price();
+				$this->order_data['total_VAT'] = $this->get_total_VAT();
 			}
 		}
 
@@ -312,7 +314,11 @@ class Model_Order
 		if ( ! $this->get_id())
 			return FALSE;
 
-		return $this->order_data = self::driver()->get($order_id);
+		$this->order_data = self::driver()->get($this->get_id());
+
+		$this->order_data['total']     = $this->get_total_price();
+		$this->order_data['total_VAT'] = $this->get_total_VAT();
+		return TRUE;
 	}
 
 	/**

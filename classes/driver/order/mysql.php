@@ -131,7 +131,7 @@ class Driver_Order_Mysql extends Driver_Order
 			return FALSE;
 
 		$order_data = array(
-			'id'          => $order_id,
+			'id'          => intval($order_id),
 			'fields'      => array(),
 			'rows'        => array(),
 			'total'       => 0,
