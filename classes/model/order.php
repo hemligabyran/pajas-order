@@ -12,6 +12,8 @@ class Model_Order
 
 	protected $order_data;
 
+	protected $session = 'default';
+
 	/**
 	 * Constructor
 	 *
@@ -21,18 +23,22 @@ class Model_Order
 	 */
 	public function __construct($order_id = FALSE, $session = 'default', $start_clean = FALSE)
 	{
-		Session::instance(); // Make sure sessions is turned on
+		$this->session = $session;
 
-		if ($session)
+		if ($this->session)
 		{
+			$session_order = Session::instance()->get('order');
+
 			// A session should be used
-			if ( ! isset($_SESSION['order'][$session]) || $start_clean)
-				$_SESSION['order'][$session] = array('fields' => array(), 'rows' => array());
+			if ( ! isset($session_order[$this->session]) || $start_clean)
+				$session_order[$this->session] = array('fields' => array(), 'rows' => array());
 
 			// Load it into $this->order_data by reference so we update both at once
-			$this->order_data              = &$_SESSION['order'][$session];
+			$this->order_data              = $session_order[$this->session];
 			$this->order_data['total']     = $this->get_total_price();
 			$this->order_data['total_VAT'] = $this->get_total_VAT();
+
+			$this->update_session();
 		}
 		else // No session shuld be used, open up a clean order_data variable
 			$this->order_data = array('fields' => array(), 'rows' => array());
@@ -46,6 +52,8 @@ class Model_Order
 				$this->order_data              = self::driver()->get($order_id);
 				$this->order_data['total']     = $this->get_total_price();
 				$this->order_data['total_VAT'] = $this->get_total_VAT();
+
+				$this->update_session();
 			}
 		}
 
@@ -71,6 +79,7 @@ class Model_Order
 
 		$this->order_data['rows'][$row_nr] = $row_data;
 		$this->recalculate_sums();
+		$this->update_session();
 
 		return $row_nr;
 	}
@@ -301,6 +310,8 @@ class Model_Order
 			$this->order_data['total']     += ($row['price'] + $VAT);
 		}
 
+		$this->update_session();
+
 		return TRUE;
 	}
 
@@ -318,6 +329,7 @@ class Model_Order
 
 		$this->order_data['total']     = $this->get_total_price();
 		$this->order_data['total_VAT'] = $this->get_total_VAT();
+
 		return TRUE;
 	}
 
@@ -332,6 +344,8 @@ class Model_Order
 		if (isset($this->order_data['fields'][$name]))
 			unset($this->order_data['fields'][$name]);
 
+		$this->update_session();
+
 		return TRUE;
 	}
 
@@ -345,6 +359,8 @@ class Model_Order
 	{
 		if (isset($this->order_data['rows'][$row_id]))
 			unset($this->order_data['rows'][$row_id]);
+
+		$this->update_session();
 
 		return TRUE;
 	}
@@ -378,6 +394,8 @@ class Model_Order
 			}
 		}
 
+		$this->update_session();
+
 		return $removed_rows;
 	}
 
@@ -385,6 +403,8 @@ class Model_Order
 	{
 		if (isset($this->order_data['rows'][$row_id][$field_name]))
 			unset($this->order_data['rows'][$row_id][$field_name]);
+
+		$this->update_session();
 
 		return TRUE;
 	}
@@ -411,6 +431,8 @@ class Model_Order
 		else
 			$this->order_data = self::driver()->get($order_id);
 
+		$this->update_session();
+
 		return $order_id;
 	}
 
@@ -434,7 +456,10 @@ class Model_Order
 	 */
 	public function set_field($name, $value)
 	{
-		return $this->order_data['fields'][$name] = $value;
+		$this->order_data['fields'][$name] = $value;
+		$this->update_session();
+
+		return TRUE;
 	}
 
 	/**
@@ -443,13 +468,34 @@ class Model_Order
 	 * @param int $row_id
 	 * @param str $name - Row field name
 	 * @param str $value - Row field value
+	 * @return boolean
 	 */
 	public function set_row_field($row_id, $name, $value)
 	{
 		if ( ! isset($this->order_data['rows'][$row_id]))
 			return FALSE;
 
-		return $this->order_data['rows'][$row_id][$name] = $value;
+		$this->order_data['rows'][$row_id][$name] = $value;
+		$this->update_session();
+
+		return TRUE;
+	}
+
+	/**
+	 * Update session data
+	 *
+	 * @return boolean
+	 */
+	protected function update_session()
+	{
+		if ($this->session)
+		{
+			$session_order                 = Session::instance()->get('order');
+			$session_order[$this->session] = $this->order_data;
+			Session::instance()->set('order', $session_order);
+		}
+
+		return TRUE;
 	}
 
 }
