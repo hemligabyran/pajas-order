@@ -125,7 +125,7 @@ class Driver_Order_Mysql extends Driver_Order
 		return $this->check_db_structure();
 	}
 
-	public function get($order_id)
+	public function __get($order_id)
 	{
 		if ( ! $this->order_id_exists($order_id))
 			return FALSE;

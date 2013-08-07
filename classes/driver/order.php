@@ -34,7 +34,7 @@ abstract class Driver_Order extends Model
 	 * @param int $order_id
 	 * @return array
 	 */
-	abstract public function get($order_id);
+//	abstract public function get($order_id);
 
 	/**
 	 * Get field id
