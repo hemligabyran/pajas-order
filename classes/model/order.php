@@ -49,7 +49,7 @@ class Model_Order
 			if ((isset($this->order_data['id']) && $order_id != $this->order_data['id']) || ! isset($this->order_data['id']))
 			{
 				// The supplied order id does not match the one saved in session/local, reaload session/local data
-				$this->order_data              = self::driver()->get($order_id);
+				$this->order_data              = self::driver()->__get($order_id);
 				$this->order_data['total']     = $this->get_total_price();
 				$this->order_data['total_VAT'] = $this->get_total_VAT();
 
@@ -429,7 +429,7 @@ class Model_Order
 		if ($maintain_session === FALSE)
 			$this->order_data = array('fields'=>array(),'rows'=>array());
 		else
-			$this->order_data = self::driver()->get($order_id);
+			$this->order_data = self::driver()->__get($order_id);
 
 		$this->update_session();
 

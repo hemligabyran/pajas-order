@@ -13,3 +13,6 @@ if (
 // Check for pajas-database
 if ( ! version_compare(PAJAS_DATABASE_VERSION, '1.0', '='))
 	throw new Kohana_Exception('Pajas database module version 1.0 required');
+
+if (setlocale(LC_ALL, 'en_US.utf-8') != 'en_US.utf-8')
+	throw new Kohana_Exception ('en_US locale required');
