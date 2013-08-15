@@ -62,22 +62,29 @@ class Model_Order
 	/**
 	 * Add row to this order
 	 *
-	 * @param array - only one dimension with data, like array('Product ID' => 'kskd', 'Price' => 239)
-	 * @return int - new row id
+	 * @param  arr $row_data - only one dimension with data, like array('Product ID' => 'kskd', 'Price' => 239)
+	 * @param  int $copies   - number of new rows like this to be added
+	 * @return int           - new row id
 	 */
-	public function add_row($row_data)
+	public function add_row($row_data, $copies = 1)
 	{
 		if ( ! isset($row_data['price'])) $row_data['price'] = 0;
 		if ( ! isset($row_data['VAT']))   $row_data['VAT']   = Kohana::$config->load('order.default_VAT');
 
-		// To not confuse new rows with already saved ones, we give them negative keys
-		$row_nr = -1;
-		if (count($this->order_data['rows']))
-			$row_nr = min(array_keys($this->order_data['rows'])) - 1;
+		while ($copies >= 1)
+		{
+			// To not confuse new rows with already saved ones, we give them negative keys
+			$row_nr = -1;
+			if (count($this->order_data['rows']))
+				$row_nr = min(array_keys($this->order_data['rows'])) - 1;
 
-		ksort($row_data);
+			ksort($row_data);
 
-		$this->order_data['rows'][$row_nr] = $row_data;
+			$this->order_data['rows'][$row_nr] = $row_data;
+
+			$copies--;
+		}
+
 		$this->recalculate_sums();
 		$this->update_session();
 
@@ -402,9 +409,10 @@ class Model_Order
 	 * @param arr $fields - array key as field name, array value as
 	 *                      field value. NULL as value will match all
 	 *                      with this field
-	 * @return int - number of removed rows
+	 * @param int $limit  - Remove maximum this many rows
+	 * @return int        - number of removed rows
 	 */
-	public function rm_row_by_row_fields($fields)
+	public function rm_row_by_row_fields($fields, $limit = FALSE)
 	{
 		$removed_rows = 0;
 		foreach ($this->order_data['rows'] as $row_id => $row)
@@ -423,6 +431,7 @@ class Model_Order
 
 			$removed_rows++;
 			unset($this->order_data['rows'][$row_id]);
+			if ($limit && $removed_rows >= $limit) break;
 		}
 
 		$this->update_session();
