@@ -419,10 +419,10 @@ class Model_Order
 						$field_value !== NULL
 					)
 				) continue 2;
-
-				$removed_rows++;
-				unset($this->order_data['rows'][$row_id]);
 			}
+
+			$removed_rows++;
+			unset($this->order_data['rows'][$row_id]);
 		}
 
 		$this->update_session();
