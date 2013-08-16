@@ -63,27 +63,21 @@ class Model_Order
 	 * Add row to this order
 	 *
 	 * @param  arr $row_data - only one dimension with data, like array('Product ID' => 'kskd', 'Price' => 239)
-	 * @param  int $copies   - number of new rows like this to be added
 	 * @return int           - new row id
 	 */
-	public function add_row($row_data, $copies = 1)
+	public function add_row($row_data)
 	{
 		if ( ! isset($row_data['price'])) $row_data['price'] = 0;
 		if ( ! isset($row_data['VAT']))   $row_data['VAT']   = Kohana::$config->load('order.default_VAT');
 
-		while ($copies >= 1)
-		{
-			// To not confuse new rows with already saved ones, we give them negative keys
-			$row_nr = -1;
-			if (count($this->order_data['rows']))
-				$row_nr = min(array_keys($this->order_data['rows'])) - 1;
+		// To not confuse new rows with already saved ones, we give them negative keys
+		$row_nr = -1;
+		if (count($this->order_data['rows']))
+			$row_nr = min(array_keys($this->order_data['rows'])) - 1;
 
-			ksort($row_data);
+		ksort($row_data);
 
-			$this->order_data['rows'][$row_nr] = $row_data;
-
-			$copies--;
-		}
+		$this->order_data['rows'][$row_nr] = $row_data;
 
 		$this->recalculate_sums();
 		$this->update_session();
@@ -382,6 +376,7 @@ class Model_Order
 		if (isset($this->order_data['fields'][$name]))
 			unset($this->order_data['fields'][$name]);
 
+		$this->recalculate_sums();
 		$this->update_session();
 
 		return TRUE;
@@ -398,6 +393,7 @@ class Model_Order
 		if (isset($this->order_data['rows'][$row_id]))
 			unset($this->order_data['rows'][$row_id]);
 
+		$this->recalculate_sums();
 		$this->update_session();
 
 		return TRUE;
@@ -434,6 +430,7 @@ class Model_Order
 			if ($limit && $removed_rows >= $limit) break;
 		}
 
+		$this->recalculate_sums();
 		$this->update_session();
 
 		return $removed_rows;
@@ -444,6 +441,7 @@ class Model_Order
 		if (isset($this->order_data['rows'][$row_id][$field_name]))
 			unset($this->order_data['rows'][$row_id][$field_name]);
 
+		$this->recalculate_sums();
 		$this->update_session();
 
 		return TRUE;
@@ -497,6 +495,8 @@ class Model_Order
 	public function set_field($name, $value)
 	{
 		$this->order_data['fields'][$name] = $value;
+
+		$this->recalculate_sums();
 		$this->update_session();
 
 		return TRUE;
@@ -516,6 +516,8 @@ class Model_Order
 			return FALSE;
 
 		$this->order_data['rows'][$row_id][$name] = $value;
+
+		$this->recalculate_sums();
 		$this->update_session();
 
 		return TRUE;
