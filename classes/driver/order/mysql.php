@@ -174,17 +174,30 @@ class Driver_Order_Mysql extends Driver_Order
 	{
 		return $this->pdo->query('SELECT name FROM order_fields WHERE id = '.$this->pdo->quote($id))->fetchColumn();
 	}
+        
+        public function get_fields()
+	{
+		return $this->pdo->query('SELECT id,name FROM order_fields')->fetchAll(PDO::FETCH_ASSOC);;
+	}
 
 	public function get_orders($match_all_fields, $match_any_field, $match_all_row_fields, $match_any_row_field, $return_fields, $return_row_fields, $limit, $offset, $order_by)
 	{
 		$sql = '
 			SELECT
 				o.id';
-
-		foreach ($return_fields as $return_field)
-			$sql .= ',
-				(SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$this->get_field_id($return_field).') AS '.Mysql::quote_identifier($return_field);
-
+                if (is_array($return_fields)) {
+			foreach ($return_fields as $return_field)
+				$sql .= ',
+                                  (SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = ' . $this->get_field_id($return_field) . ') AS ' . Mysql::quote_identifier($return_field);
+		}
+                else
+                {
+			$return_fields = $this->get_fields();
+			foreach ($return_fields as $return_field)
+				$sql .= ',
+                                  (SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = ' . $return_field['id'] . ') AS ' . $return_field['name'];
+                }
+                
 		$sql .= '
 			FROM
 				order_orders o';
