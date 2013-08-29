@@ -111,6 +111,11 @@ class Model_Order
 		return $this->add_row($this->order_data['rows'][$row_id]);
 	}
 
+	public static function factory($order_id = FALSE, $session = 'default', $start_clean = FALSE)
+	{
+		return new Order($order_id,$session,$start_clean);
+	}
+	
 	/**
 	 * Get complete order data
 	 *
