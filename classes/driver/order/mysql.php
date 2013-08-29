@@ -125,17 +125,17 @@ class Driver_Order_Mysql extends Driver_Order
 		return $this->check_db_structure();
 	}
 
-	public function __get($order_id)
+	public function get_order($order_id)
 	{
 		if ( ! $this->order_id_exists($order_id))
 			return FALSE;
 
 		$order_data = array(
-			'id'          => intval($order_id),
-			'fields'      => array(),
-			'rows'        => array(),
-			'total'       => 0,
-			'total_VAT'   => 0,
+			'id'        => intval($order_id),
+			'fields'    => array(),
+			'rows'      => array(),
+			'total'     => 0,
+			'total_VAT' => 0,
 		);
 
 		$sql = 'SELECT (SELECT name FROM order_fields WHERE id = field_id) AS field, `value` FROM order_orders_fields WHERE order_id = '.$this->pdo->quote($order_id);
@@ -296,8 +296,8 @@ class Driver_Order_Mysql extends Driver_Order
 		}
 
 		// Build the big SQL to update the order tables
+		$this->pdo->exec('LOCK TABLES order_orders_fields WRITE, order_rows WRITE, order_rows_fields WRITE, order_orders WRITE, order_fields WRITE, order_rowfields WRITE;');
 		$sql = '
-			LOCK TABLES order_orders_fields WRITE, order_rows WRITE, order_rows_fields WRITE;
 			DELETE FROM order_orders_fields WHERE order_id = '.$quoted_id.';
 			DELETE FROM order_rows_fields WHERE row_id IN (SELECT id FROM order_rows WHERE order_id = '.$quoted_id.');
 			DELETE FROM order_rows WHERE order_id = '.$quoted_id;
@@ -325,9 +325,8 @@ class Driver_Order_Mysql extends Driver_Order
 			$sql = rtrim($sql, ',').';';
 		}
 
-		$sql .= 'UNLOCK TABLES;';
-
 		$this->pdo->exec($sql);
+		$this->pdo->exec('UNLOCK TABLES;');
 
 		return $order_data['id'];
 	}
