@@ -22,9 +22,6 @@ class Driver_Order_Mysql extends Driver_Order
 
 		$result = $this->pdo->query('DESCRIBE `order_orders`;');
 		if ($result) $result = $result->fetchAll(PDO::FETCH_ASSOC);
-		echo "<pre>";
-		print_r($result);
-		echo "</pre>";die();
 		if (
 		     $result != array(
 		                   array('Field' => 'id',         'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'PRI', 'Default' => NULL, 'Extra' => 'auto_increment'),
@@ -85,8 +82,6 @@ class Driver_Order_Mysql extends Driver_Order
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 			CREATE TABLE IF NOT EXISTS `order_orders` (
 				`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-				`inserted` timestamp NULL,
-				`updated` timestamp NULL,
 				PRIMARY KEY (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 			CREATE TABLE IF NOT EXISTS `order_orders_fields` (
