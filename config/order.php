@@ -6,7 +6,7 @@ return array
 
 	// Default field values will be set at order save time if not set before
 	'default_fields' => array(
-		'date'     => date('Y-m-d H:i:s', time()),
+		'creation_time'     => date('Y-m-d H:i:s', time()),
 		'currency' => 'SEK',
 	),
 );
