@@ -14,58 +14,57 @@ class Driver_Order_Mysql extends Driver_Order
 		$result = $this->pdo->query('DESCRIBE `order_fields`;');
 		if ($result) $result = $result->fetchAll(PDO::FETCH_ASSOC);
 		if (
-		     $result != array(
-		                   array('Field' => 'id',         'Type' => 'int(10) unsigned',    'Null' => 'NO',  'Key' => 'PRI', 'Default' => NULL, 'Extra' => 'auto_increment'),
-		                   array('Field' => 'name',       'Type' => 'varchar(255)',        'Null' => 'NO',  'Key' => NULL,  'Default' => NULL, 'Extra' => NULL            ),
-		                 )
+				$result != array(
+					array('Field' => 'id',   'Type' => 'int(10) unsigned', 'Null' => 'NO', 'Key' => 'PRI', 'Default' => NULL, 'Extra' => 'auto_increment'),
+					array('Field' => 'name', 'Type' => 'varchar(255)',     'Null' => 'NO', 'Key' => NULL,  'Default' => NULL, 'Extra' => NULL),
+				)
 		) $db_check_pass = FALSE;
 
 		$result = $this->pdo->query('DESCRIBE `order_orders`;');
 		if ($result) $result = $result->fetchAll(PDO::FETCH_ASSOC);
 		if (
-		     $result != array(
-		                   array('Field' => 'id',         'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'PRI', 'Default' => NULL, 'Extra' => 'auto_increment'),
-		                 )
+			$result != array(
+				array('Field' => 'id', 'Type' => 'bigint(20) unsigned', 'Null' => 'NO', 'Key' => 'PRI', 'Default' => NULL, 'Extra' => 'auto_increment'),
+			)
 		) $db_check_pass = FALSE;
 
 		$result = $this->pdo->query('DESCRIBE `order_orders_fields`;');
 		if ($result) $result = $result->fetchAll(PDO::FETCH_ASSOC);
 		if (
-		     $result != array(
-		                   array('Field' => 'order_id',   'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
-		                   array('Field' => 'field_id',   'Type' => 'int(10) unsigned',    'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
-		                   array('Field' => 'value',      'Type' => 'text',                'Null' => 'YES', 'Key' => NULL,  'Default' => NULL, 'Extra' => NULL            ),
-		                 )
+			$result != array(
+				array('Field' => 'order_id', 'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL),
+				array('Field' => 'field_id', 'Type' => 'int(10) unsigned',    'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL),
+				array('Field' => 'value',    'Type' => 'text',                'Null' => 'YES', 'Key' => NULL,  'Default' => NULL, 'Extra' => NULL),
+			)
 		) $db_check_pass = FALSE;
 
 		$result = $this->pdo->query('DESCRIBE `order_rowfields`;');
 		if ($result) $result = $result->fetchAll(PDO::FETCH_ASSOC);
 		if (
-		     $result != array(
-		                   array('Field' => 'id',         'Type' => 'int(10) unsigned',    'Null' => 'NO',  'Key' => 'PRI', 'Default' => NULL, 'Extra' => 'auto_increment'),
-		                   array('Field' => 'name',       'Type' => 'varchar(255)',        'Null' => 'NO',  'Key' => NULL,  'Default' => NULL, 'Extra' => NULL            ),
-		                 )
+			$result != array(
+				array('Field' => 'id',   'Type' => 'int(10) unsigned', 'Null' => 'NO', 'Key' => 'PRI', 'Default' => NULL, 'Extra' => 'auto_increment'),
+				array('Field' => 'name', 'Type' => 'varchar(255)',     'Null' => 'NO', 'Key' => NULL,  'Default' => NULL, 'Extra' => NULL),
+			)
 		) $db_check_pass = FALSE;
 
 		$result = $this->pdo->query('DESCRIBE `order_rows`;');
 		if ($result) $result = $result->fetchAll(PDO::FETCH_ASSOC);
 		if (
-		     $result != array(
-		                   array('Field' => 'id',         'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'PRI', 'Default' => NULL, 'Extra' => NULL            ),
-		                   array('Field' => 'order_id',   'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'UNI', 'Default' => NULL, 'Extra' => NULL            ),
-		                 )
+			$result != array(
+				array('Field' => 'id',       'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'PRI', 'Default' => NULL, 'Extra' => NULL),
+				array('Field' => 'order_id', 'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'UNI', 'Default' => NULL, 'Extra' => NULL),
+			)
 		) $db_check_pass = FALSE;
 
 		$result = $this->pdo->query('DESCRIBE `order_rows_fields`;');
 		if ($result) $result = $result->fetchAll(PDO::FETCH_ASSOC);
 		if (
-		     $result != array(
-		                   array('Field' => 'row_id',     'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
-		                   array('Field' => 'field_id',   'Type' => 'int(10) unsigned',    'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL            ),
-		                   array('Field' => 'value',      'Type' => 'text',                'Null' => 'YES', 'Key' => NULL,  'Default' => NULL, 'Extra' => NULL            ),
-		                 )
+			$result != array(
+				array('Field' => 'row_id',   'Type' => 'bigint(20) unsigned', 'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL),
+				array('Field' => 'field_id', 'Type' => 'int(10) unsigned',    'Null' => 'NO',  'Key' => 'MUL', 'Default' => NULL, 'Extra' => NULL),
+				array('Field' => 'value',    'Type' => 'text',                'Null' => 'YES', 'Key' => NULL,  'Default' => NULL, 'Extra' => NULL),
+			)
 		) $db_check_pass = FALSE;
-
 
 		// Turn on error reportning again
 		$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -73,7 +72,8 @@ class Driver_Order_Mysql extends Driver_Order
 		return $db_check_pass;
 	}
 
-	protected function create_db_structure() {
+	protected function create_db_structure()
+	{
 		$this->pdo->exec('
 			CREATE TABLE IF NOT EXISTS `order_fields` (
 				`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -117,7 +117,7 @@ class Driver_Order_Mysql extends Driver_Order
 				ADD CONSTRAINT `order_orders_fields_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `order_orders` (`id`);
 			ALTER TABLE `order_rows`
 				ADD CONSTRAINT `order_rows_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `order_orders` (`id`);
-  			ALTER TABLE `order_rows_fields`
+				ALTER TABLE `order_rows_fields`
 				ADD CONSTRAINT `order_rows_fields_ibfk_2` FOREIGN KEY (`field_id`) REFERENCES `order_rowfields` (`id`),
 				ADD CONSTRAINT `order_rows_fields_ibfk_1` FOREIGN KEY (`row_id`) REFERENCES `order_rows` (`id`);
 		');
@@ -174,8 +174,8 @@ class Driver_Order_Mysql extends Driver_Order
 	{
 		return $this->pdo->query('SELECT name FROM order_fields WHERE id = '.$this->pdo->quote($id))->fetchColumn();
 	}
-        
-        public function get_fields()
+
+	public function get_fields()
 	{
 		return $this->pdo->query('SELECT id,name FROM order_fields')->fetchAll(PDO::FETCH_ASSOC);;
 	}
@@ -185,19 +185,20 @@ class Driver_Order_Mysql extends Driver_Order
 		$sql = '
 			SELECT
 				o.id';
-                if (is_array($return_fields)) {
+		if (is_array($return_fields))
+		{
 			foreach ($return_fields as $return_field)
 				$sql .= ',
-                                  (SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = ' . $this->get_field_id($return_field) . ') AS ' . Mysql::quote_identifier($return_field);
+					(SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$this->get_field_id($return_field).') AS '.Mysql::quote_identifier($return_field);
 		}
-                else
-                {
+		else
+		{
 			$return_fields = $this->get_fields();
 			foreach ($return_fields as $return_field)
 				$sql .= ',
-                                  (SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = ' . $return_field['id'] . ') AS ' . $return_field['name'];
-                }
-                
+					(SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$return_field['id'].') AS '.$return_field['name'];
+		}
+
 		$sql .= '
 			FROM
 				order_orders o';
@@ -254,6 +255,14 @@ class Driver_Order_Mysql extends Driver_Order
 					$sql .= ' '.Mysql::quote_identifier($field).' '.$order;
 				}
 			}
+		}
+
+		if (isset($limit))
+		{
+			$sql .= ' LIMIT '.$this->pdo->quote($limit);
+
+			if (isset($offset))
+				$sql .= ' OFFSET '.$this->pdo->quote($offset);
 		}
 
 		return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);

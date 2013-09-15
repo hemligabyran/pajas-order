@@ -70,12 +70,12 @@ class Model_Orders
 		);
 	}
 
-	public function limit($limit)                     { $this->limit                = intval($limit);  return $this;}
+	public function limit($limit)                     { $this->limit                = $limit;          return $this;}
 	public function match_all_fields($fields)         { $this->match_all_fields     = $fields;         return $this;}
 	public function match_all_row_fields($row_fields) { $this->match_all_row_fields = $row_fields;     return $this;}
 	public function match_any_field($fields)          { $this->match_any_field      = $fields;         return $this;}
 	public function match_any_row_field($row_field)   { $this->match_any_row_field  = $row_fields;     return $this;}
-	public function offset($offset)                   { $this->offset               = intval($offset); return $this;}
+	public function offset($offset)                   { $this->offset               = $offset;         return $this;}
 	public function order_by($fields)                 { $this->order_by             = $fields;         return $this;}
 	public function return_fields($fields)            { $this->return_fields        = $fields;         return $this;}
 	public function return_row_fields($row_fields)    { $this->return_row_fields    = $row_fields;     return $this;}
