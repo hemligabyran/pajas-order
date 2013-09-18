@@ -115,7 +115,7 @@ class Model_Order
 	{
 		return new Order($order_id,$session,$start_clean);
 	}
-	
+
 	/**
 	 * Get complete order data
 	 *
@@ -334,7 +334,7 @@ class Model_Order
 		return $matched;
 	}
 
-	private function recalculate_sums()
+	public function recalculate_sums()
 	{
 		// Recalculate total sums
 		$this->order_data['total']     = 0;
@@ -407,13 +407,14 @@ class Model_Order
 	/**
 	 * Remove a row by what fields it contains
 	 *
-	 * @param arr $fields - array key as field name, array value as
-	 *                      field value. NULL as value will match all
-	 *                      with this field
-	 * @param int $limit  - Remove maximum this many rows
-	 * @return int        - number of removed rows
+	 * @param arr $fields           - array key as field name, array value as
+	 *                                field value. NULL as value will match all
+	 *                                with this field
+	 * @param int $limit            - Remove maximum this many rows
+	 * @param bol $recalculate_sums
+	 * @return int                  - number of removed rows
 	 */
-	public function rm_row_by_row_fields($fields, $limit = FALSE)
+	public function rm_row_by_row_fields($fields, $limit = FALSE, $recalculate_sums = TRUE)
 	{
 		$removed_rows = 0;
 		foreach ($this->order_data['rows'] as $row_id => $row)
@@ -435,7 +436,7 @@ class Model_Order
 			if ($limit && $removed_rows >= $limit) break;
 		}
 
-		$this->recalculate_sums();
+		if ($recalculate_sums) $this->recalculate_sums();
 		$this->update_session();
 
 		return $removed_rows;
