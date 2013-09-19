@@ -139,7 +139,7 @@ class Driver_Order_Mysql extends Driver_Order
 		);
 
 		$sql = 'SELECT (SELECT name FROM order_fields WHERE id = field_id) AS field, `value` FROM order_orders_fields WHERE order_id = '.$this->pdo->quote($order_id);
-		foreach ($this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $row)
+		foreach ($this->pdo->query($sql) as $row)
 			$order_data['fields'][$row['field']] = $row['value'];
 
 		$sql = '
@@ -148,10 +148,11 @@ class Driver_Order_Mysql extends Driver_Order
 				rf.name AS field,
 				`value`
 			FROM
-				order_rows_fields rsf
-				JOIN order_rowfields rf ON rf.id = rsf.field_id
+				     order_rows_fields rsf
+				JOIN order_rowfields   rf  ON rf.id = rsf.field_id
+				JOIN order_rows        r   ON rsf.row_id = r.id
 			WHERE
-				row_id IN (SELECT id FROM order_rows WHERE order_id = '.$this->pdo->quote($order_id).')';
+				r.order_id = '.$this->pdo->quote($order_id);
 		foreach ($this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $row)
 			$order_data['rows'][$row['row_id']][$row['field']]  = $row['value'];
 
