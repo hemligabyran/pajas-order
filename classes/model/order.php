@@ -49,21 +49,9 @@ class Model_Order
 			if ((isset($this->order_data['id']) && $order_id != $this->order_data['id']) || ! isset($this->order_data['id']))
 			{
 				// The supplied order id does not match the one saved in session/local, reaload session/local data
-
-				$timer_start = microtime(TRUE);
-
-
-
 				$this->order_data              = self::driver()->get_order($order_id);
-
-
-				$timer_end = microtime(TRUE);
-				echo round($timer_end - $timer_start, 3)." sec\n";
-
-
 				$this->order_data['total']     = $this->get_total_price();
 				$this->order_data['total_VAT'] = $this->get_total_VAT();
-
 
 				$this->update_session();
 			}
