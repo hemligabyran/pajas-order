@@ -22,17 +22,6 @@ class Model_Orders
 
 	protected $order_by;
 
-	/**
-	 * Constructor
-	 *
-	 * @param int $order_id    - if provided, loads an order from database, otherwise creates a new one or loads from session
-	 * @param str $session     - Name of the session to use, if FALSE use no session at all
-	 * @param bol $start_clean - If no order_id is supplied, clean out possible session data before starting
-	 */
-	public function __construct()
-	{
-	}
-
 	public static function factory()
 	{
 		return new self();

@@ -290,9 +290,36 @@ class Model_Order
 	 *
 	 * @return array
 	 */
-	public function get_rows()
+	public function get_rows($lump_together_rows = FALSE)
 	{
-		return $this->order_data['rows'];
+		if ($lump_together_rows)
+		{
+			$tmp_rows   = array();
+
+			foreach ($this->order_data['rows'] as $row_id => $row_data)
+			{
+				$found = FALSE;
+				foreach ($tmp_rows as $tmp_row_id => $tmp_row_data)
+				{
+					if (isset($tmp_row_data['qty'])) $row_data['qty'] = $tmp_row_data['qty'];
+
+					if ($tmp_row_data == $row_data)
+					{
+						$tmp_rows[$tmp_row_id]['qty']++;
+						$found = TRUE;
+					}
+				}
+
+				if ( ! $found)
+				{
+					$row_data['qty']   = 1;
+					$tmp_rows[$row_id] = $row_data;
+				}
+			}
+
+			return $tmp_rows;
+		}
+		else return $this->order_data['rows'];
 	}
 
 	/**
