@@ -74,6 +74,7 @@ class Model_Order
 		$row_nr = -1;
 		if (count($this->order_data['rows']))
 			$row_nr = min(array_keys($this->order_data['rows'])) - 1;
+		if ($row_nr > 0) $row_nr = -1;
 
 		ksort($row_data);
 

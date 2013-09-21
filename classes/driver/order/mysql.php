@@ -293,63 +293,159 @@ class Driver_Order_Mysql extends Driver_Order
 
 	public function save($order_data)
 	{
-		if ( ! isset($order_data['id']))
-		{
-			// Order did not exist in database, create it
-			$this->pdo->exec('INSERT INTO order_orders () VALUES();');
-			$order_data['id'] = $this->pdo->lastInsertId();
-		}
-		elseif ( ! $this->order_id_exists($order_data['id']))
-			return FALSE;
 
-		// We will use the quoted order id a lot of times, simplify by store it in a variable
-		$quoted_id = $this->pdo->quote($order_data['id']);
-
-		// Give rows real row ids instead of temporary, negative ones
-		foreach ($order_data['rows'] as $row_id => $row_data)
-		{
-			if ($row_id < 0)
+		// Create a new, fresh order
+			if ( ! isset($order_data['id']))
 			{
-				// If $row_id is below 0, it is not previously stored in the database
-				$this->pdo->exec('INSERT INTO order_rows (order_id) VALUES('.$quoted_id.');');
-				unset($order_data['rows'][$row_id]);
-				$row_id = $this->pdo->lastInsertId();
-				$order_data['rows'][$row_id] = $row_data;
+				// Order did not exist in database, create it
+				$this->pdo->exec('INSERT INTO order_orders () VALUES();');
+				$order_data['id'] = $this->pdo->lastInsertId();
+
+				// We will use the quoted order id a lot of times, simplify by store it in a variable
+				$quoted_id = $this->pdo->quote($order_data['id']);
+
+				$sql_insert_of = 'INSERT INTO order_orders_fields (order_id, field_id, value) VALUES';
+				foreach ($order_data['fields'] as $field_name => $field_value)
+					$sql_insert_of .= '('.$quoted_id.','.$this->get_field_id($field_name).','.$this->pdo->quote($field_value).'),';
+
+				$sql_insert_of = rtrim($sql_insert_of, ',');
+				$this->pdo->exec($sql_insert_of);
+
+				foreach ($order_data['rows'] as $nr => $row_data)
+				{
+					$sql_insert_orf = 'INSERT INTO order_rows (order_id) VALUES('.$quoted_id.');SET @last_row_id = LAST_INSERT_ID();';
+					$sql_insert_orf .= 'INSERT INTO order_rows_fields (row_id,field_id,value) VALUES';
+
+					foreach ($row_data as $row_field => $row_value)
+						$sql_insert_orf .= '(@last_row_id,'.$this->get_row_field_id($row_field).','.$this->pdo->quote($row_value).'),';
+
+					$sql_insert_orf = rtrim($sql_insert_orf, ',').';';
+					$this->pdo->exec($sql_insert_orf);
+				}
 			}
-		}
 
-		// Build the big SQL to update the order tables
-		$this->pdo->exec('LOCK TABLES order_orders_fields WRITE, order_rows WRITE, order_rows_fields WRITE, order_orders WRITE, order_fields WRITE, order_rowfields WRITE;');
-		$sql = '
-			DELETE FROM order_orders_fields WHERE order_id = '.$quoted_id.';
-			DELETE FROM order_rows_fields WHERE row_id IN (SELECT id FROM order_rows WHERE order_id = '.$quoted_id.');
-			DELETE FROM order_rows WHERE order_id = '.$quoted_id;
+		// Something is really wrong, the order ID set does not exist in the database
+			elseif ( ! $this->order_id_exists($order_data['id']))
+				return FALSE;
 
-		if (count($order_data['rows']))
-			$sql .= ' AND id NOT IN ('.implode(',', array_keys($order_data['rows'])).')';
-		$sql .= ';';
-
-		if (count($order_data['fields']))
-		{
-			$sql .= 'INSERT INTO order_orders_fields (order_id,field_id,`value`) VALUES';
-			foreach ($order_data['fields'] as $name => $value)
-				$sql .= '('.$quoted_id.','.$this->get_field_id($name).','.$this->pdo->quote($value).'),';
-			$sql = rtrim($sql, ',').';';
-		}
-
-		if (count($order_data['rows']))
-		{
-			$sql .= 'INSERT INTO order_rows_fields (row_id,field_id,`value`) VALUES';
-			foreach ($order_data['rows'] as $row_id => $row_data)
+		// Update an existing order
+			else
 			{
-				foreach ($row_data as $name => $value)
-					$sql .= '('.$this->pdo->quote($row_id).','.$this->get_row_field_id($name).','.$this->pdo->quote($value).'),';
-			}
-			$sql = rtrim($sql, ',').';';
-		}
+				// We will use the quoted order id a lot of times, simplify by store it in a variable
+				$quoted_id = $this->pdo->quote($order_data['id']);
 
-		$this->pdo->exec($sql);
-		$this->pdo->exec('UNLOCK TABLES;');
+				// Fetch the old database data to compare differencies
+				$old_order_data = $this->get_order($order_data['id']);
+
+				// Go through order data
+				foreach ($order_data['fields'] as $field => $value)
+				{
+					if (isset($old_order_data['fields'][$field]) && $old_order_data['fields'][$field] != $value)
+						$this->pdo->exec('UPDATE order_orders_fields SET value = '.$this->pdo->quote($value).' WHERE order_id = '.$quoted_id.' AND field_id = '.$this->get_field_id($field));
+					elseif ( ! isset($old_order_data['fields'][$field]))
+						$this->pdo->exec('INSERT INTO order_orders_fields (order_id,field_id,value) VALUES('.$quoted_id.','.$this->get_field_id($field).','.$this->pdo->quote($value).')');
+				}
+
+				// Delete order data thats removed in the updated version
+				foreach ($old_order_data['fields'] as $field => $value)
+					if ( ! isset($order_data['fields'][$field]))
+						$this->pdo->exec('DELETE FROM order_orders_fields WHERE order_id = '.$quoted_id.' AND field_id = '.$this->get_field_id($field));
+
+				// Go through order rows
+				foreach ($order_data['rows'] as $row_id => $row_data)
+				{
+					// New order row
+						if ($row_id < 0)
+						{
+							$sql_insert_orf = 'INSERT INTO order_rows (order_id) VALUES('.$quoted_id.');SET @last_row_id = LAST_INSERT_ID();';
+							$sql_insert_orf .= 'INSERT INTO order_rows_fields (row_id,field_id,value) VALUES';
+
+							foreach ($row_data as $row_field => $row_value)
+								$sql_insert_orf .= '(@last_row_id,'.$this->get_row_field_id($row_field).','.$this->pdo->quote($row_value).'),';
+
+							$sql_insert_orf = rtrim($sql_insert_orf, ',').';';
+							$this->pdo->exec($sql_insert_orf);
+						}
+
+					// This order row already exists in the database, lets see what we should update
+						else
+						{
+							// Insert or update
+							foreach ($row_data as $row_field => $row_value)
+							{
+								if (isset($old_order_data['rows'][$row_id][$row_field]) && $old_order_data['rows'][$row_id][$row_field] != $row_value)
+									$this->pdo->exec('UPDATE order_rows_fields SET value = '.$this->pdo->quote($row_value).' WHERE row_id = '.$this->pdo->quote($row_id).' AND field_id = '.$this->get_row_field_id($row_field));
+								elseif ( ! isset($old_order_data['rows'][$row_id][$row_field]))
+									$this->pdo->exec('INSERT INTO order_rows_fields (row_id,field_id,value) VALUES('.$this->pdo->quote($row_id).','.$this->get_row_field_id($row_field).','.$this->pdo->quote($row_value).')');
+							}
+
+							// Delete missing rows data
+							if (isset($old_order_data['rows'][$row_id]))
+								foreach ($old_order_data['rows'][$row_id] as $row_field => $row_value)
+									if ( ! isset($order_data['rows'][$row_id][$row_field]))
+										$this->pdo->exec('DELETE FROM order_rows_fields WHERE row_id = '.$this->pdo->quote($row_id).' AND field_id = '.$this->get_row_field_id($row_field));
+						}
+				}
+
+				// Delete removed rows
+				foreach ($old_order_data['rows'] as $row_id => $row_data)
+				{
+					if ($row_id > 0 && ! isset($order_data['rows'][$row_id]))
+					{
+						$this->pdo->exec('DELETE FROM order_rows_fields WHERE row_id = '.$this->pdo->quote($row_id));
+						$this->pdo->exec('DELETE FROM order_rows WHERE id = '.$this->pdo->quote($row_id));
+					}
+				}
+
+
+/*
+				// Give rows real row ids instead of temporary, negative ones
+				foreach ($order_data['rows'] as $row_id => $row_data)
+				{
+					if ($row_id < 0)
+					{
+						// If $row_id is below 0, it is not previously stored in the database
+						$this->pdo->exec('INSERT INTO order_rows (order_id) VALUES('.$quoted_id.');');
+						unset($order_data['rows'][$row_id]);
+						$row_id = $this->pdo->lastInsertId();
+						$order_data['rows'][$row_id] = $row_data;
+					}
+				}
+
+				// Build the big SQL to update the order tables
+				$this->pdo->exec('LOCK TABLES order_orders_fields WRITE, order_rows WRITE, order_rows_fields WRITE, order_orders WRITE, order_fields WRITE, order_rowfields WRITE;');
+				$sql = '
+					DELETE FROM order_orders_fields WHERE order_id = '.$quoted_id.';
+					DELETE FROM order_rows_fields WHERE row_id IN (SELECT id FROM order_rows WHERE order_id = '.$quoted_id.');
+					DELETE FROM order_rows WHERE order_id = '.$quoted_id;
+
+				if (count($order_data['rows']))
+					$sql .= ' AND id NOT IN ('.implode(',', array_keys($order_data['rows'])).')';
+				$sql .= ';';
+
+				if (count($order_data['fields']))
+				{
+					$sql .= 'INSERT INTO order_orders_fields (order_id,field_id,`value`) VALUES';
+					foreach ($order_data['fields'] as $name => $value)
+						$sql .= '('.$quoted_id.','.$this->get_field_id($name).','.$this->pdo->quote($value).'),';
+					$sql = rtrim($sql, ',').';';
+				}
+
+				if (count($order_data['rows']))
+				{
+					$sql .= 'INSERT INTO order_rows_fields (row_id,field_id,`value`) VALUES';
+					foreach ($order_data['rows'] as $row_id => $row_data)
+					{
+						foreach ($row_data as $name => $value)
+							$sql .= '('.$this->pdo->quote($row_id).','.$this->get_row_field_id($name).','.$this->pdo->quote($value).'),';
+					}
+					$sql = rtrim($sql, ',').';';
+				}
+
+				$this->pdo->exec($sql);
+				$this->pdo->exec('UNLOCK TABLES;');
+*/
+			}
 
 		return $order_data['id'];
 	}
