@@ -10,13 +10,13 @@ class Model_Orders
 	 */
 	static private $driver;
 
+	protected $ids;
 	protected $match_all_fields;
 	protected $match_all_row_fields;
 	protected $match_any_field;
 	protected $match_any_row_field;
 	protected $return_fields;
 	protected $return_row_fields;
-
 	protected $limit  = 100;
 	protected $offset = 0;
 
@@ -55,8 +55,25 @@ class Model_Orders
 			$this->return_row_fields,
 			$this->limit,
 			$this->offset,
-			$this->order_by
+			$this->order_by,
+			$this->ids
 		);
+	}
+
+	public function ids($array)
+	{
+		if ($array === NULL)   $this->ids = NULL;
+		elseif (empty($array)) $this->ids = array(-1);
+		else
+		{
+			if ( ! is_array($array)) $array = array($array);
+
+			array_map('intval', $array);
+
+			$this->ids = $array;
+		}
+
+		return $this;
 	}
 
 	public function limit($limit)                     { $this->limit                = $limit;          return $this;}

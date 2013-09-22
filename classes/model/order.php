@@ -264,6 +264,21 @@ class Model_Order
 	}
 
 	/**
+	 * Get row field data
+	 *
+	 * @param int $row_id
+	 * @param str $name - Row field name
+	 * @return boolean
+	 */
+	public function get_row_field($row_id, $name)
+	{
+		if ( ! isset($this->order_data['rows'][$row_id][$name]))
+			return FALSE;
+		else
+			return $this->order_data['rows'][$row_id][$name];
+	}
+
+	/**
 	 * Get row field id
 	 *  - The row field will be created if it does not exist
 	 *

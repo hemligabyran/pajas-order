@@ -181,7 +181,7 @@ class Driver_Order_Mysql extends Driver_Order
 		return $this->pdo->query('SELECT id,name FROM order_fields')->fetchAll(PDO::FETCH_ASSOC);;
 	}
 
-	public function get_orders($match_all_fields, $match_any_field, $match_all_row_fields, $match_any_row_field, $return_fields, $return_row_fields, $limit, $offset, $order_by)
+	public function get_orders($match_all_fields, $match_any_field, $match_all_row_fields, $match_any_row_field, $return_fields, $return_row_fields, $limit, $offset, $order_by, $ids)
 	{
 		$sql = '
 			SELECT
@@ -240,6 +240,8 @@ class Driver_Order_Mysql extends Driver_Order
 					$sql .= ' AND '.Mysql::quote_identifier($field.$nr).'.value = '.$this->pdo->quote($value);
 			}
 		}
+
+		if ($ids) $sql .= ' AND o.id IN ('.implode(',', $ids).')';
 
 		if ($order_by)
 		{
