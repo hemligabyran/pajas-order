@@ -9,4 +9,6 @@ return array
 		'creation_time'     => date('Y-m-d H:i:s', time()),
 		'currency' => 'SEK',
 	),
+
+	'log_orders' => FALSE,
 );

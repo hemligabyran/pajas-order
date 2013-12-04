@@ -296,6 +296,14 @@ class Driver_Order_Mysql extends Driver_Order
 	public function save($order_data)
 	{
 
+			$enable_log   = Kohana::$config->load('order.log_orders');
+
+			if ($enable_log && method_exists('User', 'instance' ))
+			{
+				$user = User::instance();
+				Log::instance()->add(Log::INFO, 'User id: '.$user->get_id());
+			}
+
 		// Create a new, fresh order
 			if ( ! isset($order_data['id']))
 			{
@@ -303,12 +311,17 @@ class Driver_Order_Mysql extends Driver_Order
 				$this->pdo->exec('INSERT INTO order_orders () VALUES();');
 				$order_data['id'] = $this->pdo->lastInsertId();
 
+				if ($enable_log) Log::instance()->add(Log::INFO, 'Insert order id: '.$order_data['id']);
 				// We will use the quoted order id a lot of times, simplify by store it in a variable
 				$quoted_id = $this->pdo->quote($order_data['id']);
 
 				$sql_insert_of = 'INSERT INTO order_orders_fields (order_id, field_id, value) VALUES';
 				foreach ($order_data['fields'] as $field_name => $field_value)
+				{
 					$sql_insert_of .= '('.$quoted_id.','.$this->get_field_id($field_name).','.$this->pdo->quote($field_value).'),';
+
+					if ($enable_log) Log::instance()->add(Log::INFO, 'Order field: '.$field_name.' value: '.$field_value);
+				}
 
 				$sql_insert_of = rtrim($sql_insert_of, ',');
 				$this->pdo->exec($sql_insert_of);
@@ -318,8 +331,13 @@ class Driver_Order_Mysql extends Driver_Order
 					$sql_insert_orf = 'INSERT INTO order_rows (order_id) VALUES('.$quoted_id.');SET @last_row_id = LAST_INSERT_ID();';
 					$sql_insert_orf .= 'INSERT INTO order_rows_fields (row_id,field_id,value) VALUES';
 
+					if ($enable_log) Log::instance()->add(Log::INFO, 'Insert row');
+
 					foreach ($row_data as $row_field => $row_value)
+					{
 						$sql_insert_orf .= '(@last_row_id,'.$this->get_row_field_id($row_field).','.$this->pdo->quote($row_value).'),';
+						if ($enable_log) Log::instance()->add(Log::INFO, 'Row field: '.$row_field.' value: '.$row_value);
+					}
 
 					$sql_insert_orf = rtrim($sql_insert_orf, ',').';';
 					$this->pdo->exec($sql_insert_orf);
@@ -336,6 +354,8 @@ class Driver_Order_Mysql extends Driver_Order
 				// We will use the quoted order id a lot of times, simplify by store it in a variable
 				$quoted_id = $this->pdo->quote($order_data['id']);
 
+				if ($enable_log) Log::instance()->add(Log::INFO, 'Update order id: '.$order_data['id']);
+
 				// Fetch the old database data to compare differencies
 				$old_order_data = $this->get_order($order_data['id']);
 
@@ -343,15 +363,24 @@ class Driver_Order_Mysql extends Driver_Order
 				foreach ($order_data['fields'] as $field => $value)
 				{
 					if (isset($old_order_data['fields'][$field]) && $old_order_data['fields'][$field] != $value)
+					{
 						$this->pdo->exec('UPDATE order_orders_fields SET value = '.$this->pdo->quote($value).' WHERE order_id = '.$quoted_id.' AND field_id = '.$this->get_field_id($field));
+						if ($enable_log) Log::instance()->add(Log::INFO, 'Update order field: '.$field.' Old value: '.$old_order_data['fields'][$field].' New value: '.$value);
+					}
 					elseif ( ! isset($old_order_data['fields'][$field]))
+					{
 						$this->pdo->exec('INSERT INTO order_orders_fields (order_id,field_id,value) VALUES('.$quoted_id.','.$this->get_field_id($field).','.$this->pdo->quote($value).')');
+						if ($enable_log) Log::instance()->add(Log::INFO, 'Add order field: '.$field.' New value: '.$value);
+					}
 				}
 
 				// Delete order data thats removed in the updated version
 				foreach ($old_order_data['fields'] as $field => $value)
 					if ( ! isset($order_data['fields'][$field]))
+					{
 						$this->pdo->exec('DELETE FROM order_orders_fields WHERE order_id = '.$quoted_id.' AND field_id = '.$this->get_field_id($field));
+						if ($enable_log) Log::instance()->add(Log::INFO, 'DELETE order field: '.$field);
+					}
 
 				// Go through order rows
 				foreach ($order_data['rows'] as $row_id => $row_data)
@@ -362,8 +391,13 @@ class Driver_Order_Mysql extends Driver_Order
 							$sql_insert_orf = 'INSERT INTO order_rows (order_id) VALUES('.$quoted_id.');SET @last_row_id = LAST_INSERT_ID();';
 							$sql_insert_orf .= 'INSERT INTO order_rows_fields (row_id,field_id,value) VALUES';
 
+							if ($enable_log) Log::instance()->add(Log::INFO, 'Add order row: '.$row_id);
+
 							foreach ($row_data as $row_field => $row_value)
+							{
 								$sql_insert_orf .= '(@last_row_id,'.$this->get_row_field_id($row_field).','.$this->pdo->quote($row_value).'),';
+								if ($enable_log) Log::instance()->add(Log::INFO, 'Add order row field: '.$row_field.' New value: '.$row_value);
+							}
 
 							$sql_insert_orf = rtrim($sql_insert_orf, ',').';';
 							$this->pdo->exec($sql_insert_orf);
@@ -372,20 +406,30 @@ class Driver_Order_Mysql extends Driver_Order
 					// This order row already exists in the database, lets see what we should update
 						else
 						{
+							if ($enable_log) Log::instance()->add(Log::INFO, 'Update order row: '.$row_id);
 							// Insert or update
 							foreach ($row_data as $row_field => $row_value)
 							{
 								if (isset($old_order_data['rows'][$row_id][$row_field]) && $old_order_data['rows'][$row_id][$row_field] != $row_value)
+								{
 									$this->pdo->exec('UPDATE order_rows_fields SET value = '.$this->pdo->quote($row_value).' WHERE row_id = '.$this->pdo->quote($row_id).' AND field_id = '.$this->get_row_field_id($row_field));
+									if ($enable_log) Log::instance()->add(Log::INFO, 'Update row field: '.$row_field.' Old value: '.$old_order_data['rows'][$row_id][$row_field].' New value: '.$row_value);
+								}
 								elseif ( ! isset($old_order_data['rows'][$row_id][$row_field]))
+								{
 									$this->pdo->exec('INSERT INTO order_rows_fields (row_id,field_id,value) VALUES('.$this->pdo->quote($row_id).','.$this->get_row_field_id($row_field).','.$this->pdo->quote($row_value).')');
+									if ($enable_log) Log::instance()->add(Log::INFO, 'Add row field: '.$row_field.' New value: '.$row_value);
+								}
 							}
 
 							// Delete missing rows data
 							if (isset($old_order_data['rows'][$row_id]))
 								foreach ($old_order_data['rows'][$row_id] as $row_field => $row_value)
 									if ( ! isset($order_data['rows'][$row_id][$row_field]))
+									{
 										$this->pdo->exec('DELETE FROM order_rows_fields WHERE row_id = '.$this->pdo->quote($row_id).' AND field_id = '.$this->get_row_field_id($row_field));
+										if ($enable_log) Log::instance()->add(Log::INFO, 'DELETE row field: '.$row_field);
+									}
 						}
 				}
 
@@ -396,6 +440,11 @@ class Driver_Order_Mysql extends Driver_Order
 					{
 						$this->pdo->exec('DELETE FROM order_rows_fields WHERE row_id = '.$this->pdo->quote($row_id));
 						$this->pdo->exec('DELETE FROM order_rows WHERE id = '.$this->pdo->quote($row_id));
+						if ($enable_log)
+						{
+							Log::instance()->add(Log::INFO, 'DELETE row fields for row_id: '.$row_id);
+							Log::instance()->add(Log::INFO, 'DELETE order rows for row_id: '.$row_id);
+						}
 					}
 				}
 
