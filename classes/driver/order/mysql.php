@@ -192,7 +192,7 @@ class Driver_Order_Mysql extends Driver_Order
 				$sql .= ',
 					(SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$this->get_field_id($return_field).') AS '.Mysql::quote_identifier($return_field);
 		}
-		else
+		elseif ($this->return_fields)
 		{
 			$return_fields = $this->get_fields();
 			foreach ($return_fields as $return_field)
