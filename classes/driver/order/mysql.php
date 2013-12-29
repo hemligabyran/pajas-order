@@ -212,7 +212,7 @@ class Driver_Order_Mysql extends Driver_Order
 				foreach ($values as $nr => $value)
 				{
 					$sql .= '
-						INNER JOIN order_orders_fields '.Mysql::quote_identifier($field.$nr).'
+						LEFT JOIN order_orders_fields '.Mysql::quote_identifier($field.$nr).'
 							ON '.Mysql::quote_identifier($field.$nr).'.order_id = o.id
 							AND '.Mysql::quote_identifier($field.$nr).'.field_id = '.$this->get_field_id($field);
 				}
@@ -221,7 +221,7 @@ class Driver_Order_Mysql extends Driver_Order
 				{
 					// Empty array should match the field whatever the content
 					$sql .= '
-						INNER JOIN order_orders_fields '.$field.'
+						LEFT JOIN order_orders_fields '.$field.'
 							ON '.Mysql::quote_identifier($field).'.order_id = o.id
 							AND '.Mysql::quote_identifier($field).'.field_id = '.$this->get_field_id($field);
 				}
@@ -237,7 +237,14 @@ class Driver_Order_Mysql extends Driver_Order
 			{
 				if ( ! is_array($values)) $values = array($values);
 				foreach ($values as $nr => $value)
-					$sql .= ' AND '.Mysql::quote_identifier($field.$nr).'.value = '.$this->pdo->quote($value);
+				{
+					if ($value === NULL || $value == 'NULL')
+						$sql .= ' AND '.Mysql::quote_identifier($field.$nr).'.value IS NULL';
+					elseif ($value == 'NOT NULL')
+						$sql .= ' AND '.Mysql::quote_identifier($field.$nr).'.value IS NOT NULL';
+					else
+						$sql .= ' AND '.Mysql::quote_identifier($field.$nr).'.value = '.$this->pdo->quote($value);
+				}
 			}
 		}
 
