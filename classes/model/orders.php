@@ -10,6 +10,7 @@ class Model_Orders
 	 */
 	static private $driver;
 
+	protected $custom_where;
 	protected $ids;
 	protected $match_all_fields;
 	protected $match_all_row_fields;
@@ -56,7 +57,8 @@ class Model_Orders
 			$this->limit,
 			$this->offset,
 			$this->order_by,
-			$this->ids
+			$this->ids,
+			$this->custom_where
 		);
 	}
 
@@ -76,6 +78,7 @@ class Model_Orders
 		return $this;
 	}
 
+	public function custom_where($sql)                { $this->custom_where         = $sql;            return $this;}
 	public function limit($limit)                     { $this->limit                = $limit;          return $this;}
 	public function match_all_fields($fields)         { $this->match_all_fields     = $fields;         return $this;}
 	public function match_all_row_fields($row_fields) { $this->match_all_row_fields = $row_fields;     return $this;}

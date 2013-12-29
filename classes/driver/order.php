@@ -66,9 +66,10 @@ abstract class Driver_Order extends Model
 	 * @param int $offset
 	 * @param arr $order_by             - key as field, value as ASC or DESC (array of arrays for order by multiple columns)
 	 * @param arr $ids                  - array of ids that all must be matched
+	 * @param str $custom_where         - Custom SQL to the where query
 	 * @return array
 	 */
-	abstract public function get_orders($match_all_fields, $match_any_field, $match_all_row_fields, $match_any_row_field, $return_fields, $return_row_fields, $limit, $offset, $order_by, $ids);
+	abstract public function get_orders($match_all_fields, $match_any_field, $match_all_row_fields, $match_any_row_field, $return_fields, $return_row_fields, $limit, $offset, $order_by, $ids, $custom_where);
 
 	/**
 	 * Get row field id
