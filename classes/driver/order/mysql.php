@@ -255,7 +255,7 @@ class Driver_Order_Mysql extends Driver_Order
 
 		if ($order_by)
 		{
-			$sql .= ' ORDER BY';
+			$sql .= "\nORDER BY";
 			foreach ($order_by as $key => $value)
 			{
 				if ( ! is_array($value)) $value = array($key => $value);
@@ -265,7 +265,10 @@ class Driver_Order_Mysql extends Driver_Order
 					if (strtoupper($order) == 'ASC') $order = 'ASC';
 					else                             $order = 'DESC';
 
-					$sql .= ' '.Mysql::quote_identifier($field).' '.$order;
+					if ( ! strpos($field, ' ') && $field != 'id')
+						$sql .= ' (SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$this->get_field_id($field).') '.$order;
+					else
+						$sql .= ' '.Mysql::quote_identifier($field).' '.$order;
 				}
 			}
 		}
