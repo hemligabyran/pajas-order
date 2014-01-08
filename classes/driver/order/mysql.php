@@ -221,7 +221,7 @@ class Driver_Order_Mysql extends Driver_Order
 				{
 					// Empty array should match the field whatever the content
 					$sql .= '
-						LEFT JOIN order_orders_fields '.$field.'
+						JOIN order_orders_fields '.$field.'
 							ON '.Mysql::quote_identifier($field).'.order_id = o.id
 							AND '.Mysql::quote_identifier($field).'.field_id = '.$this->get_field_id($field);
 				}
