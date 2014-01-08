@@ -28,6 +28,20 @@ class Model_Orders
 		return new self();
 	}
 
+	public function count()
+	{
+		return self::driver()->count_orders(
+			$this->match_all_fields,
+			$this->match_any_field,
+			$this->match_all_row_fields,
+			$this->match_any_row_field,
+			$this->limit,
+			$this->offset,
+			$this->ids,
+			$this->custom_where
+		);
+	}
+
 	/**
 	 * Loads the driver if it has not been loaded yet, then returns it
 	 *

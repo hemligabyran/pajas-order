@@ -125,6 +125,74 @@ class Driver_Order_Mysql extends Driver_Order
 		return $this->check_db_structure();
 	}
 
+	public function count_orders($match_all_fields, $match_any_field, $match_all_row_fields, $match_any_row_field, $limit, $offset, $ids, $custom_where)
+	{
+		$sql = '
+			SELECT
+				COUNT(o.id)
+			FROM
+				order_orders o';
+
+		if ($match_all_fields)
+		{
+			foreach ($match_all_fields as $field => $values)
+			{
+				if ( ! is_array($values)) $values = array($values);
+				foreach ($values as $nr => $value)
+				{
+					$sql .= '
+						LEFT JOIN order_orders_fields '.Mysql::quote_identifier($field.$nr).'
+							ON '.Mysql::quote_identifier($field.$nr).'.order_id = o.id
+							AND '.Mysql::quote_identifier($field.$nr).'.field_id = '.$this->get_field_id($field);
+				}
+
+				if ( ! count($values))
+				{
+					// Empty array should match the field whatever the content
+					$sql .= '
+						JOIN order_orders_fields '.$field.'
+							ON '.Mysql::quote_identifier($field).'.order_id = o.id
+							AND '.Mysql::quote_identifier($field).'.field_id = '.$this->get_field_id($field);
+				}
+			}
+		}
+
+		$sql .= '
+			WHERE 1';
+
+		if ($match_all_fields)
+		{
+			foreach ($match_all_fields as $field => $values)
+			{
+				if ( ! is_array($values)) $values = array($values);
+				foreach ($values as $nr => $value)
+				{
+					if ($value === NULL || $value == 'NULL')
+						$sql .= ' AND '.Mysql::quote_identifier($field.$nr).'.value IS NULL';
+					elseif ($value == 'NOT NULL')
+						$sql .= ' AND '.Mysql::quote_identifier($field.$nr).'.value IS NOT NULL';
+					else
+						$sql .= ' AND '.Mysql::quote_identifier($field.$nr).'.value = '.$this->pdo->quote($value);
+				}
+			}
+		}
+
+		if ($ids) $sql .= ' AND o.id IN ('.implode(',', $ids).')';
+
+		if ($custom_where)
+			$sql .= $custom_where;
+
+		if (isset($limit))
+		{
+			$sql .= ' LIMIT '.$this->pdo->quote($limit);
+
+			if (isset($offset))
+				$sql .= ' OFFSET '.$this->pdo->quote($offset);
+		}
+
+		return $this->pdo->query($sql)->fetchColumn();
+	}
+
 	public function get_order($order_id)
 	{
 		if ( ! $this->order_id_exists($order_id))
