@@ -343,10 +343,10 @@ class Driver_Order_Mysql extends Driver_Order
 
 		if (isset($limit))
 		{
-			$sql .= ' LIMIT '.$this->pdo->quote($limit);
+			$sql .= ' LIMIT '.preg_replace('/[^0-9]/', '', $limit);
 
 			if (isset($offset))
-				$sql .= ' OFFSET '.$this->pdo->quote($offset);
+				$sql .= ' OFFSET '.preg_replace('/[^0-9]/', '', $offset);
 		}
 
 		return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
