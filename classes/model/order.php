@@ -27,18 +27,11 @@ class Model_Order
 
 		if ($this->session)
 		{
-			$session_order = Session::instance()->get('order');
+			$session_data =& Session::instance()->as_array();
+			if ( ! isset($session_data['order'][$session]) || $start_clean)
+				$session_data['order'][$session] = array('fields' => array(), 'rows' => array());
 
-			// A session should be used
-			if ( ! isset($session_order[$this->session]) || $start_clean)
-				$session_order[$this->session] = array('fields' => array(), 'rows' => array());
-
-			// Load it into $this->order_data by reference so we update both at once
-			$this->order_data              = $session_order[$this->session];
-			$this->order_data['total']     = $this->get_total_price();
-			$this->order_data['total_VAT'] = $this->get_total_VAT();
-
-			$this->update_session();
+			$this->order_data =& $session_data['order'][$session];
 		}
 		else // No session shuld be used, open up a clean order_data variable
 			$this->order_data = array('fields' => array(), 'rows' => array());
@@ -48,7 +41,7 @@ class Model_Order
 			// $order_id is set and it is valid
 			if ((isset($this->order_data['id']) && $order_id != $this->order_data['id']) || ! isset($this->order_data['id']))
 			{
-				// The supplied order id does not match the one saved in session/local, reaload session/local data
+				// The supplied order id does not match the one saved in session/local, reload session/local data
 				$this->order_data              = self::driver()->get_order($order_id);
 				$this->order_data['total']     = $this->get_total_price();
 				$this->order_data['total_VAT'] = $this->get_total_VAT();
@@ -226,6 +219,7 @@ class Model_Order
 	public function get_total_price($include_VAT = TRUE)
 	{
 		$sum = 0;
+
 		foreach ($this->order_data['rows'] as $row)
 		{
 			if (isset($row['price']))
@@ -479,7 +473,9 @@ class Model_Order
 			if ($limit && $removed_rows >= $limit) break;
 		}
 
-		if ($recalculate_sums) $this->recalculate_sums();
+		if ($recalculate_sums)
+			$this->recalculate_sums();
+
 		$this->update_session();
 
 		return $removed_rows;

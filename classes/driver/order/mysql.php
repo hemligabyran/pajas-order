@@ -376,7 +376,6 @@ class Driver_Order_Mysql extends Driver_Order
 
 	public function save($order_data)
 	{
-
 		// Create a new, fresh order
 			if ( ! isset($order_data['id']))
 			{
