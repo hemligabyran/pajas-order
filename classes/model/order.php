@@ -496,7 +496,7 @@ class Model_Order
 	 * Save order to database
 	 *
 	 * @param bool $maintain_session - If FALSE, erase the session data
-	 * @return int - order id
+	 * @return int - order id or FALSE on failure
 	 */
 	public function save($maintain_session = FALSE)
 	{

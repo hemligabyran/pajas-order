@@ -349,7 +349,18 @@ class Driver_Order_Mysql extends Driver_Order
 				$sql .= ' OFFSET '.preg_replace('/[^0-9]/', '', $offset);
 		}
 
-		return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+		$query = $this->pdo->query($sql);
+
+		if (is_object($query))
+		{
+			return $query->fetchAll(PDO::FETCH_ASSOC);
+		}
+		else
+		{
+			Kohana::$log->add(LOG::ERROR, 'Faulty SQL: '.$sql);
+
+			return array();
+		}
 	}
 
 	public function get_row_field_id($name)
