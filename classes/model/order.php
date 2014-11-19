@@ -113,9 +113,12 @@ class Model_Order
 	/**
 	 * Get complete order data
 	 *
+	 * @param bool - $lump_together_rows - Lump together rows and increase qty value
+	 * @param arr - $ignore_diff_fields - order row fields to ignore when checking if they should be lumped together
+	 *
 	 * @return array - array('id' => int, 'fields' => array(etc.), 'rows' => array(23923 => array(etc)))
 	 */
-	public function get($lump_together_rows = FALSE)
+	public function get($lump_together_rows = FALSE, $ignore_diff_fields = array())
 	{
 		if ($lump_together_rows)
 		{
@@ -127,7 +130,16 @@ class Model_Order
 				$found = FALSE;
 				foreach ($tmp_rows as $tmp_row_id => $tmp_row_data)
 				{
-					if (isset($tmp_row_data['qty'])) $row_data['qty'] = $tmp_row_data['qty'];
+					if (isset($tmp_row_data['qty']))
+						$row_data['qty'] = $tmp_row_data['qty'];
+
+					foreach ($ignore_diff_fields as $field_name)
+					{
+						if (isset($tmp_row_data[$field_name]))
+							$row_data[$field_name] = $tmp_row_data[$field_name];
+						elseif (isset($row_data[$field_name]))
+							unset($row_data[$field_name]);
+					}
 
 					if ($tmp_row_data == $row_data)
 					{
