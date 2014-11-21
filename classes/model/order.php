@@ -138,7 +138,7 @@ class Model_Order
 						if (isset($tmp_row_data[$field_name]))
 							$row_data[$field_name] = $tmp_row_data[$field_name];
 						elseif (isset($row_data[$field_name]))
-							unset($row_data[$field_name]);
+							$tmp_row_data[$field_name] = $row_data[$field_name];
 					}
 
 					if ($tmp_row_data == $row_data)
