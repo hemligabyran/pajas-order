@@ -123,39 +123,7 @@ class Model_Order
 		if ($lump_together_rows)
 		{
 			$order_data = $this->order_data;
-			$tmp_rows   = array();
-
-			foreach ($order_data['rows'] as $row_id => $row_data)
-			{
-				$found = FALSE;
-				foreach ($tmp_rows as $tmp_row_id => $tmp_row_data)
-				{
-					if (isset($tmp_row_data['qty']))
-						$row_data['qty'] = $tmp_row_data['qty'];
-
-					foreach ($ignore_diff_fields as $field_name)
-					{
-						if (isset($tmp_row_data[$field_name]))
-							$row_data[$field_name] = $tmp_row_data[$field_name];
-						elseif (isset($row_data[$field_name]))
-							$tmp_row_data[$field_name] = $row_data[$field_name];
-					}
-
-					if ($tmp_row_data == $row_data)
-					{
-						$tmp_rows[$tmp_row_id]['qty']++;
-						$found = TRUE;
-					}
-				}
-
-				if ( ! $found)
-				{
-					$row_data['qty']   = 1;
-					$tmp_rows[$row_id] = $row_data;
-				}
-			}
-
-			$order_data['rows'] = $tmp_rows;
+			$order_data['rows'] = $this->get_rows($lump_together_rows, $ignore_diff_fields);
 
 			return $order_data;
 		}
@@ -310,20 +278,32 @@ class Model_Order
 	/**
 	 * Get rows
 	 *
+	 * @param bool - $lump_together_rows - Lump together rows and increase qty value
+	 * @param arr - $ignore_diff_fields - order row fields to ignore when checking if they should be lumped together
+	 *
 	 * @return array
 	 */
-	public function get_rows($lump_together_rows = FALSE)
+	public function get_rows($lump_together_rows = FALSE, $ignore_diff_fields = array())
 	{
 		if ($lump_together_rows)
 		{
-			$tmp_rows   = array();
+			$tmp_rows = array();
 
 			foreach ($this->order_data['rows'] as $row_id => $row_data)
 			{
 				$found = FALSE;
 				foreach ($tmp_rows as $tmp_row_id => $tmp_row_data)
 				{
-					if (isset($tmp_row_data['qty'])) $row_data['qty'] = $tmp_row_data['qty'];
+					if (isset($tmp_row_data['qty']))
+						$row_data['qty'] = $tmp_row_data['qty'];
+
+					foreach ($ignore_diff_fields as $field_name)
+					{
+						if (isset($tmp_row_data[$field_name]))
+							$row_data[$field_name] = $tmp_row_data[$field_name];
+						elseif (isset($row_data[$field_name]))
+							$tmp_row_data[$field_name] = $row_data[$field_name];
+					}
 
 					if ($tmp_row_data == $row_data)
 					{
@@ -341,7 +321,10 @@ class Model_Order
 
 			return $tmp_rows;
 		}
-		else return $this->order_data['rows'];
+		else
+		{
+			return $this->order_data['rows'];
+		}
 	}
 
 	/**
