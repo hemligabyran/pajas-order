@@ -288,16 +288,17 @@ class Model_Order
 		if ($lump_together_rows)
 		{
 			$tmp_rows = array();
-
 			foreach ($this->order_data['rows'] as $row_id => $row_data)
 			{
+				$match_row_data = $row_data;
 				$found = FALSE;
 				foreach ($tmp_rows as $tmp_row_id => $tmp_row_data)
 				{
 					if (isset($tmp_row_data['qty']))
 						$row_data['qty'] = $tmp_row_data['qty'];
 
-					$fields_to_add = array();
+					$fields_to_add  = array();
+					$match_row_data = $row_data;
 					foreach ($ignore_diff_fields as $field_name)
 					{
 						if (isset($tmp_row_data[$field_name]))
@@ -309,11 +310,11 @@ class Model_Order
 						if (isset($row_data[$field_name]))
 						{
 							$fields_to_add[$field_name] = $row_data[$field_name];
-							unset($row_data[$field_name]);
+							unset($match_row_data[$field_name]);
 						}
 					}
 
-					if ($tmp_row_data == $row_data)
+					if ($tmp_row_data == $match_row_data)
 					{
 						$tmp_rows[$tmp_row_id]['qty']++;
 
