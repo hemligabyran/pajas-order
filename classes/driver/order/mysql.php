@@ -258,7 +258,7 @@ class Driver_Order_Mysql extends Driver_Order
 		{
 			foreach ($return_fields as $return_field)
 				$sql .= ',
-					(SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$this->get_field_id($return_field).') AS '.Mysql::quote_identifier($return_field);
+					(SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$this->get_field_id($return_field).' LIMIT 1) AS '.Mysql::quote_identifier($return_field);
 		}
 		elseif ($return_fields)
 		{
@@ -268,7 +268,7 @@ class Driver_Order_Mysql extends Driver_Order
 				// We cannot have to many sub queries
 				if ($nr < 20)
 					$sql .= ',
-						(SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$return_field['id'].') AS '.Mysql::quote_identifier($return_field['name']);
+						(SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$return_field['id'].' LIMIT 1) AS '.Mysql::quote_identifier($return_field['name']);
 			}
 		}
 
@@ -338,7 +338,7 @@ class Driver_Order_Mysql extends Driver_Order
 					else                             $order = 'DESC';
 
 					if ( ! strpos($field, ' ') && $field != 'id')
-						$sql .= ' (SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$this->get_field_id($field).') '.$order;
+						$sql .= ' (SELECT value FROM order_orders_fields WHERE order_id = o.id AND field_id = '.$this->get_field_id($field).' LIMIT 1) '.$order;
 					else
 						$sql .= ' '.Mysql::quote_identifier($field).' '.$order;
 				}
